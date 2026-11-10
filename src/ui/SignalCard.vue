@@ -7,7 +7,6 @@ import type { OutletView } from '@/engine/outlet'
 import { KIND_LABEL } from '@/config/copy'
 import { LEVEL_LABEL } from '@/config/levels'
 import { UI } from '@/config/uiCopy'
-import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import FollowToggle from './FollowToggle.vue'
@@ -17,13 +16,13 @@ import SignalSteps from './SignalSteps.vue'
 import { formatAgo, formatUpdated } from './format'
 import { KIND_ICON } from './icons'
 import SignalIcon from './SignalIcon.vue'
-import { TONE, statusTone } from './tone'
+import { statusTone } from './tone'
 import { useKeptScroll } from './useKeptScroll'
 
 /**
- * Event card of one signal in the left panel: what happened (title, subject, value, level, status,
- * whether the condition is still present) in the header, the response steps right under it, then the
- * subject's live data and who is involved, with the lifecycle actions in the footer. The steps come
+ * Event card of one signal in the left panel: what happened in a short header (title with its status,
+ * subject and place, age; the level shows in the icon colour), the response steps right under it, then
+ * the subject's live data and who is involved, with the lifecycle actions in the footer. The steps come
  * first so they are on screen without scrolling on a 1280 x 720 projector.
  * `subject` is the live detail of the signal's subject when the map selection holds it;
  * `view` is this card's outlet stack entry, used to keep the scroll position.
@@ -49,21 +48,16 @@ const involved = computed(() => s.value.involved.filter((o) => o.id !== s.value.
     <header class="flex shrink-0 items-start gap-3 px-4 pb-3 pt-1.5">
       <SignalIcon size="md" :kind="s.subject.kind" :level="s.level" />
       <div class="flex min-w-0 flex-1 flex-col gap-0.5 pt-0.5">
-        <h2 class="text-base font-semibold leading-snug tracking-[-0.01em]">{{ s.title }}</h2>
+        <div class="flex items-start justify-between gap-2">
+          <h2 class="text-base font-semibold leading-snug tracking-[-0.01em]">
+            {{ s.title }}<span class="sr-only">, {{ LEVEL_LABEL[s.level] }}</span>
+          </h2>
+          <Badge :tone="statusTone(s)" class="mt-0.5">{{ UI.signals.status[s.status] }}</Badge>
+        </div>
         <p class="break-words text-xs text-muted-foreground">
           <span class="font-medium text-neutral-700">{{ s.subject.label }}</span>, {{ s.place }}
         </p>
-        <p v-if="s.valueText" class="mt-1 text-sm font-medium leading-snug text-foreground tabular-nums">{{ s.valueText }}</p>
-        <!-- live state of an open signal; a resolved one keeps its last value and says so in its status badge -->
-        <p v-if="s.status !== 'resolved'" :class="cn('flex items-center gap-1.5 text-xs', s.conditionActive ? TONE[s.level].text : 'text-lv-normal-fg')">
-          <span :class="cn('size-1.5 shrink-0 rounded-full', s.conditionActive ? TONE[s.level].solid : 'bg-lv-normal')" aria-hidden="true" />
-          {{ s.conditionActive ? UI.signals.conditionActive : UI.signals.conditionCleared }}
-        </p>
-        <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
-          <Badge :tone="s.level">{{ LEVEL_LABEL[s.level] }}</Badge>
-          <Badge :tone="statusTone(s)">{{ UI.signals.status[s.status] }}</Badge>
-          <span class="ml-0.5 text-xs text-muted-foreground tabular-nums">{{ when }}</span>
-        </div>
+        <p class="text-xs text-muted-foreground tabular-nums">{{ when }}</p>
       </div>
     </header>
 

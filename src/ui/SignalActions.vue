@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button'
 /**
  * Lifecycle buttons of a signal: acknowledge while new, resolve while open (unlocked when the
  * condition clears or every step is done), then whatever the caller adds in the default slot.
- * Used in the signal card footer. Both buttons remove themselves, so keyboard focus moves on to
- * the next button here.
+ * Used in the signal card footer and in the signal blocks of an object card. Both buttons remove
+ * themselves, so keyboard focus moves on to the next button here, or to the nearest element marked
+ * data-focus-fallback when none is left.
  */
 const props = defineProps<{ signal: SignalView }>()
 
@@ -19,23 +20,24 @@ const resolved = computed(() => s.value.status === 'resolved')
 
 const root = ref<HTMLElement | null>(null)
 const hasFocus = () => !!root.value?.contains(document.activeElement)
-async function refocus() {
+/* the fallback is looked up before the action: a resolved signal block may drop these buttons altogether */
+async function refocus(fallback: HTMLElement | null) {
   await nextTick()
   const r = root.value
-  if (r?.isConnected) r.querySelector<HTMLElement>('button:not(:disabled)')?.focus()
+  const next = (r?.isConnected ? r.querySelector<HTMLElement>('button:not(:disabled)') : null) ?? (fallback?.isConnected ? fallback : null)
+  next?.focus({ preventScroll: true })
+  next?.scrollIntoView({ block: 'nearest' })
 }
 
-function acknowledge() {
+function act(run: () => void) {
   const f = hasFocus()
-  commands.acknowledge(s.value.id)
-  if (f) refocus()
+  const fallback = root.value?.closest<HTMLElement>('[data-focus-fallback]') ?? null
+  run()
+  if (f) refocus(fallback)
 }
 
-function resolve() {
-  const f = hasFocus()
-  commands.resolve(s.value.id)
-  if (f) refocus()
-}
+const acknowledge = () => act(() => commands.acknowledge(s.value.id))
+const resolve = () => act(() => commands.resolve(s.value.id))
 </script>
 
 <template>

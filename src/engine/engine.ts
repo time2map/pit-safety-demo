@@ -8,7 +8,6 @@ import type { MapAdapter } from '@/map/api'
 import {
   FOLLOW_KINDS,
   LAYER_GROUPS,
-  type Basemap,
   type EngineCommands,
   type LayerGroup,
   type MapControls,
@@ -31,13 +30,14 @@ const POLL_MS = 2000
 
 /**
  * Map padding that keeps the scene clear of the floating panels (see ui/Hud.vue):
- * the signals panel on the left (16 + 384 or 420 wide), the legend card bottom right on wide screens.
+ * the signals panel on the left (16 + 384 or 420 wide), the map controls column on the right
+ * (16 + 40), the presenter dock at the bottom.
  */
 function padding() {
   const wide = window.innerWidth >= 1600
   return {
-    top: 88,
-    right: wide ? 300 : 32,
+    top: 24,
+    right: 72,
     bottom: 72,
     left: wide ? 468 : 432,
   }
@@ -72,7 +72,6 @@ export function createEngine(options: AppOptions): Engine {
   let fpsSince = 0
 
   const snapshot = shallowRef<Snapshot>(decorate(world.snapshot(null)))
-  const basemap = ref<Basemap>('satellite')
   const layers = reactive(Object.fromEntries(LAYER_GROUPS.map((g) => [g, true])) as Record<LayerGroup, boolean>)
   const dockVisible = ref(options.dock)
   const outlet = createOutlet({
@@ -256,10 +255,6 @@ export function createEngine(options: AppOptions): Engine {
       adapter?.setPadding(padding())
       adapter?.fitSite()
     },
-    setBasemap: (b) => {
-      basemap.value = b
-      adapter?.setBasemap(b)
-    },
     setLayer: (g, on) => {
       layers[g] = on
       adapter?.setLayer(g, on)
@@ -288,7 +283,6 @@ export function createEngine(options: AppOptions): Engine {
       followId = null
       publish()
     })
-    adapter.setBasemap(basemap.value)
     for (const g of LAYER_GROUPS) adapter.setLayer(g, layers[g])
     adapter.setPadding(padding())
     adapter.fitSite()
@@ -296,7 +290,7 @@ export function createEngine(options: AppOptions): Engine {
   }
 
   return {
-    context: { snapshot, commands, map, basemap, layers, options, dockVisible, outlet },
+    context: { snapshot, commands, map, layers, options, dockVisible, outlet },
     attachMap,
     start() {
       document.addEventListener('visibilitychange', onVisibility)

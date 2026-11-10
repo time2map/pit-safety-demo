@@ -13,25 +13,16 @@ const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1)
 export const UI = {
   brand: {
     ...PRODUCT,
-    markLabel: 'Pit Safety Monitor mark',
-  },
-
-  kpi: {
-    region: 'Site status',
-    siteTime: 'Site time',
-    equipment: 'Equipment',
-    equipmentValue: (on: number, total: number) => `${on} of ${total} online`,
-    people: 'People',
-    peopleValue: (n: number) => `${n} on site`,
-    sensors: 'Sensors',
-    sensorsValue: (on: number, total: number) => `${on} of ${total} reporting`,
-    critical: 'Critical',
-    warning: 'Warning',
-    nextBlast: 'Next blast',
-    noBlast: 'No blast planned',
-    blastIn: (label: string, dur: string) => `${label} in ${dur}`,
-    blastFiring: (label: string) => `${label} firing now`,
-    blastFired: (label: string, ago: string) => `${label} fired ${ago} ago`,
+    /** visible lead of the header counts, so they read as signals */
+    signals: 'Signals',
+    /** accessible name of the header counts */
+    counts: 'Active signals',
+    /** count first, so a badge reads as a number of signals and not as a status: "3 critical" */
+    critical: (n: number) => `${n} critical`,
+    warning: (n: number) => `${n} warning`,
+    /** what a screen reader hears for each count: "3 critical signals", "1 warning signal" */
+    criticalFull: (n: number) => plural(n, 'critical signal', 'critical signals'),
+    warningFull: (n: number) => plural(n, 'warning signal', 'warning signals'),
   },
 
   signals: {
@@ -45,6 +36,8 @@ export const UI = {
     emptyResolvedHint: 'Signals you resolve are kept here',
     status: { new: 'New', acknowledged: 'Acknowledged', resolved: 'Resolved' } satisfies Record<SignalStatus, string>,
     opened: (ago: string) => `Opened ${lowerFirst(ago)}`,
+    /** the object a signal is about, then when it opened or resolved: "IW-02, opened 2 min ago" */
+    about: (label: string, when: string) => `${label}, ${lowerFirst(when)}`,
     resolvedAgo: (ago: string) => `Resolved ${lowerFirst(ago)}`,
     acknowledge: 'Acknowledge',
     showOnMap: 'Show on map',
@@ -54,8 +47,6 @@ export const UI = {
     stepsDone: (done: number, total: number) => `${done} of ${total} response steps done`,
     responseSteps: 'Response steps',
     resolveHint: 'Resolve unlocks when the condition clears or every step is done',
-    conditionActive: 'Condition still present',
-    conditionCleared: 'Condition cleared',
     liveData: (label: string) => `${label} live data`,
     details: 'Details',
     detailsOf: (label: string) => `Open ${label} details`,
@@ -98,6 +89,8 @@ export const UI = {
     depthUnit: 'm',
     occupants: 'Inside the zone now',
     related: 'Related signals',
+    /** heading of the object's own part of its card, under its related signals */
+    liveData: 'Live data',
     noReadings: 'No readings in the last 30 min',
   },
 
@@ -107,9 +100,6 @@ export const UI = {
     zoomOut: 'Zoom out',
     resetNorth: 'Reset north',
     fitSite: 'Fit site',
-    basemap: 'Basemap',
-    satellite: 'Satellite',
-    light: 'Light',
     layers: 'Layers',
     layersTitle: 'Map layers',
     layersHint: 'A layer that is off shows its objects as small pins. Anything in a signal stays full size.',
@@ -119,6 +109,10 @@ export const UI = {
       sensors: 'Instruments',
       zones: 'Zones',
     } satisfies Record<LayerGroup, string>,
+  },
+
+  attribution: {
+    label: 'Map attribution',
   },
 
   legend: {
@@ -134,6 +128,8 @@ export const UI = {
     blastEquipment: 'Blast exclusion zone, equipment ring',
     zoneColourNote: 'Zone colour follows the instrument or blast status',
     unacknowledged: 'Signal not acknowledged yet',
+    ripple: 'Ripples around what a new signal is about',
+    problem: 'Vehicle or person at warning or critical',
     layerOff: 'Object on a layer that is off',
   },
 

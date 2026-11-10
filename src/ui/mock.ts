@@ -5,7 +5,6 @@
  */
 import { reactive, ref, shallowRef } from 'vue'
 import type {
-  Basemap,
   ChecklistStep,
   LayerGroup,
   ObjectRef,
@@ -233,9 +232,8 @@ export function mockSnapshot(): Snapshot {
 export function createMockContext(opts: { tick?: boolean } = {}): AppContext {
   const base = mockSnapshot()
   const snapshot = shallowRef<Snapshot>(base)
-  const basemap = ref<Basemap>('satellite')
   const layers = reactive<Record<LayerGroup, boolean>>({ vehicles: true, people: true, sensors: true, zones: true })
-  const dockVisible = ref(true)
+  const dockVisible = ref(false)
 
   const edit = (fn: (s: Snapshot) => void) => {
     const s = structuredClone(snapshot.value)
@@ -268,7 +266,6 @@ export function createMockContext(opts: { tick?: boolean } = {}): AppContext {
 
   return {
     snapshot,
-    basemap,
     layers,
     dockVisible,
     outlet: createOutlet({
@@ -283,7 +280,6 @@ export function createMockContext(opts: { tick?: boolean } = {}): AppContext {
       zoomOut() {},
       resetNorth() {},
       fitSite() {},
-      setBasemap: (b) => (basemap.value = b),
       setLayer: (g, on) => (layers[g] = on),
     },
     commands: {

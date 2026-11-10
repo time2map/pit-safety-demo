@@ -5,7 +5,6 @@ import { useApp } from '@/engine/keys'
 import { UI } from '@/config/uiCopy'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import BrandHeader from './BrandHeader.vue'
 import IconButton from './IconButton.vue'
 import ObjectCard from './ObjectCard.vue'
 import SignalCard from './SignalCard.vue'
@@ -53,15 +52,22 @@ watch([top, signal, objectDetail], ([t, s, o]) => {
 /*
  * Keep keyboard focus inside the panel while moving between views: the row or button that
  * had focus disappears, so focus goes to the back button, and back on the list to the row
- * that opened the card, or the first row (or the list filter) when that one has left the list,
- * say resolved in its card. Only when focus was already in the panel, so map clicks, toasts
- * and the Space pause hotkey are left alone.
+ * that opened the card. The first row (or the list filter) takes it instead when that signal
+ * has left the list (say resolved in its card) or was acknowledged there: new signals sort
+ * first, so the acknowledged row has dropped down and the top row is the next one to handle.
+ * Only when focus was already in the panel, so map clicks, toasts and the Space pause hotkey
+ * are left alone.
  */
 const root = ref<HTMLElement | null>(null)
 const nav = ref<HTMLElement | null>(null)
 let openedFrom: string | null = null
+let openedNew = false
+const statusOf = (id: string) => snapshot.value.signalsActive.find((x) => x.id === id)?.status
 watch(top, async (t, old) => {
-  if (!old) openedFrom = t?.kind === 'signal' ? t.id : null
+  if (!old) {
+    openedFrom = t?.kind === 'signal' ? t.id : null
+    openedNew = !!openedFrom && statusOf(openedFrom) === 'new'
+  }
   const active = document.activeElement
   if (!active || active === document.body || !root.value?.contains(active)) return
   await nextTick()
@@ -71,17 +77,19 @@ watch(top, async (t, old) => {
   }
   // rows still on the list; a row that is fading out after leaving it does not count
   const row = (sel: string) => root.value?.querySelector<HTMLElement>(`li:not(.signal-list-leave-active) ${sel}`)
+  const handled = !!openedFrom && openedNew && statusOf(openedFrom) !== 'new'
   const target =
-    (openedFrom && row(`[data-signal-id="${CSS.escape(openedFrom)}"]`)) ||
+    (openedFrom && !handled && row(`[data-signal-id="${CSS.escape(openedFrom)}"]`)) ||
     row('[data-signal-id]') ||
     root.value?.querySelector<HTMLElement>('[role="group"] button')
   target?.focus({ preventScroll: true })
+  // the list may have re-sorted while the card was open, so make sure the row is in view
+  if (target?.hasAttribute('data-signal-id')) target.scrollIntoView({ block: 'nearest' })
 })
 </script>
 
 <template>
   <section ref="root" :aria-label="UI.signals.title" class="glass-floating flex min-h-0 flex-col overflow-hidden rounded-3xl">
-    <BrandHeader />
     <SignalList v-show="!top" class="min-h-0 flex-1" />
 
     <template v-if="top">

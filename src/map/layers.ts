@@ -1,6 +1,7 @@
 /**
- * WebGL sources and layers of the operational overlay, bottom to top: zones, the blast and the
- * signal ripples. Object pins are HTML markers drawn above all of this (map/markers.ts).
+ * WebGL sources and layers of the operational overlay, bottom to top: zones, the blast, the looping
+ * ripples of signals nobody has acknowledged yet and the one-off ripples. Object pins are HTML markers
+ * drawn above all of this (map/markers.ts).
  * No text layers: the style has no glyphs.
  */
 import type * as maplibregl from 'maplibre-gl'
@@ -12,6 +13,7 @@ import type { LayerGroup } from '@/engine/contract'
 export const SRC = {
   zones: 'psm-zones',
   blasts: 'psm-blasts',
+  loops: 'psm-loops',
   pulses: 'psm-pulses',
 } as const
 
@@ -25,6 +27,7 @@ export const L = {
   blastBlock: 'psm-blast-block',
   blastRingVehicle: 'psm-blast-ring-vehicle',
   blastRingPeople: 'psm-blast-ring-people',
+  loop: 'psm-loop',
   pulses: 'psm-pulses',
 } as const
 
@@ -130,6 +133,21 @@ function layerList(): AddLayerObject[] {
       filter: ['==', ['get', 'part'], 'peopleRing'],
       paint: { 'line-color': levelColor, 'line-width': 2, 'line-dasharray': [5, 2.5], 'line-opacity': ['case', armed, 1, 0.6] },
     },
+    // the looping ripple: one static point per rippling pin; map/adapter.ts sets radius and opacity per
+    // frame as constants, which needs no tile reload (a setData per frame would reload every tile of the source)
+    {
+      id: L.loop,
+      type: 'circle',
+      source: SRC.loops,
+      paint: {
+        'circle-radius': 0,
+        'circle-color': ['get', 'c'],
+        'circle-opacity': 0,
+        'circle-stroke-color': ['get', 'c'],
+        'circle-stroke-width': 2.5,
+        'circle-stroke-opacity': 0,
+      },
+    },
     {
       id: L.pulses,
       type: 'circle',
@@ -154,6 +172,7 @@ export function addLayers(map: maplibregl.Map) {
   removeLayers(map) // safe to call twice (hot reload)
   map.addSource(SRC.zones, { type: 'geojson', data: emptyCollection() })
   map.addSource(SRC.blasts, { type: 'geojson', data: emptyCollection() })
+  map.addSource(SRC.loops, { type: 'geojson', data: emptyCollection() })
   map.addSource(SRC.pulses, { type: 'geojson', data: emptyCollection() })
   for (const layer of layerList()) map.addLayer(layer)
 }

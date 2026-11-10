@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
 import { Compass, Layers, Minus, Plus, Scan, Shapes } from 'lucide-vue-next'
-import { LAYER_GROUPS, type Basemap, type LayerGroup } from '@/engine/contract'
+import { LAYER_GROUPS, type LayerGroup } from '@/engine/contract'
 import { useApp } from '@/engine/keys'
 import { UI } from '@/config/uiCopy'
-import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import IconButton from './IconButton.vue'
+import IconPopover from './IconPopover.vue'
 import { CATEGORY_ICON } from './icons'
 
-const { map, basemap, layers } = useApp()
+/** Map controls in one column on the right edge, like most web maps: layers, zoom, north, fit site. Tooltips and the layers popover open to the left. */
+const { map, layers } = useApp()
 
 const LAYER_ICON: Record<LayerGroup, Component> = {
   vehicles: CATEGORY_ICON.vehicle,
@@ -20,35 +18,12 @@ const LAYER_ICON: Record<LayerGroup, Component> = {
   sensors: CATEGORY_ICON.sensor,
   zones: Shapes,
 }
-
-function onBasemap(v: string) {
-  if (v === 'satellite' || v === 'light') map.setBasemap(v as Basemap)
-}
 </script>
 
 <template>
-  <div role="toolbar" :aria-label="UI.map.toolbar" class="glass-soft flex h-11 items-center gap-1 rounded-full px-1.5">
-    <IconButton :icon="Minus" :label="UI.map.zoomOut" @click="map.zoomOut()" />
-    <IconButton :icon="Plus" :label="UI.map.zoomIn" @click="map.zoomIn()" />
-    <IconButton :icon="Compass" :label="UI.map.resetNorth" @click="map.resetNorth()" />
-
-    <Separator orientation="vertical" class="mx-1 h-5" />
-
-    <ToggleGroup :model-value="basemap" :aria-label="UI.map.basemap" @update:model-value="onBasemap">
-      <ToggleGroupItem value="satellite">{{ UI.map.satellite }}</ToggleGroupItem>
-      <ToggleGroupItem value="light">{{ UI.map.light }}</ToggleGroupItem>
-    </ToggleGroup>
-
-    <Separator orientation="vertical" class="mx-1 h-5" />
-
-    <Popover>
-      <PopoverTrigger as-child>
-        <Button variant="ghost" size="sm" class="gap-1.5 px-3">
-          <Layers :size="16" />
-          {{ UI.map.layers }}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent side="top" align="start" class="w-60 p-2">
+  <div role="toolbar" aria-orientation="vertical" :aria-label="UI.map.toolbar" class="flex flex-col items-center gap-2">
+    <div class="glass-soft flex flex-col rounded-full p-[3px]">
+      <IconPopover :icon="Layers" :label="UI.map.layers" content-class="w-60 p-2">
         <p class="px-2 pb-1.5 pt-1 text-xs font-medium text-muted-foreground">{{ UI.map.layersTitle }}</p>
         <ul class="flex flex-col">
           <li v-for="g in LAYER_GROUPS" :key="g">
@@ -63,9 +38,17 @@ function onBasemap(v: string) {
           </li>
         </ul>
         <p class="px-2 pb-1 pt-1.5 text-[11px] leading-4 text-muted-foreground">{{ UI.map.layersHint }}</p>
-      </PopoverContent>
-    </Popover>
+      </IconPopover>
+    </div>
 
-    <IconButton :icon="Scan" :label="UI.map.fitSite" @click="map.fitSite()" />
+    <div class="glass-soft flex flex-col gap-0.5 rounded-full p-[3px]">
+      <IconButton :icon="Plus" :label="UI.map.zoomIn" side="left" @click="map.zoomIn()" />
+      <IconButton :icon="Minus" :label="UI.map.zoomOut" side="left" @click="map.zoomOut()" />
+    </div>
+
+    <div class="glass-soft flex flex-col gap-0.5 rounded-full p-[3px]">
+      <IconButton :icon="Compass" :label="UI.map.resetNorth" side="left" @click="map.resetNorth()" />
+      <IconButton :icon="Scan" :label="UI.map.fitSite" side="left" @click="map.fitSite()" />
+    </div>
   </div>
 </template>

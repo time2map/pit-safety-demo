@@ -102,6 +102,8 @@ class SimWorldImpl implements SimWorld {
   private readonly inSignal = new Map<string, SignalLevel>()
   /** objects in a signal nobody has acknowledged yet, with the worst such signal level (corner badge) */
   private readonly alerts = new Map<string, SignalLevel>()
+  /** subjects of the signals nobody has acknowledged yet, with the worst such signal level (looping ripples) */
+  private readonly ripples = new Map<string, SignalLevel>()
   /** the current or last ground tremor on SS-1, behind the seismic event signal; null before the first */
   private quake: { lastAt: number; peak: number; level: 'warning' | 'critical' } | null = null
 
@@ -119,7 +121,12 @@ class SimWorldImpl implements SimWorld {
       const u = i === 0 ? 0 : clamp((i + (r.trucks() - 0.5) * 0.15) / n, 0, 0.999)
       this.trucks.push(new Truck(d, r.trucks, u))
     }
-    const vehicles = VEHICLES.map((d) => this.makeVehicle(d))
+    const vehicles = VEHICLES.map((d) => {
+      // a water truck that used to run here, between WL-01 and LV-01, drew two numbers from the misc stream;
+      // they are still drawn, so LV-01, the zone outlines and everything else seeded after keep their values
+      if (d.id === 'LV-01') r.misc(), r.misc()
+      return this.makeVehicle(d)
+    })
     const people = PEOPLE.map((p) => {
       if (typeof p.area === 'string') return new Walker({ ...p, area: p.area }, r.people)
       const s = new Scripted(p.id, p.label, 'person', Path.of(ROUTES[p.area.route]), 1.3, r.people)
@@ -133,7 +140,7 @@ class SimWorldImpl implements SimWorld {
     for (const s of this.instruments) this.instrById.set(s.id, s)
     this.zones = buildZones(this.instruments, this.actors.length, r.misc)
     this.blasts = buildBlasts(this.actors.length)
-    this.board = new SignalBoard((at, level) => this.pulse(at, level))
+    this.board = new SignalBoard()
     this.director = new Director(opts.mode === 'auto')
 
     const actor = <T extends Mobile>(id: string) => this.actorById.get(id) as T
@@ -218,7 +225,6 @@ class SimWorldImpl implements SimWorld {
         place: s ? s.def.place : a instanceof Truck ? ROUTE_LABEL[a.route] : '',
         involved: [],
         valueText: h.valueText,
-        at: s ? s.lngLat : POINTS.dump,
       })
       Object.assign(sig, { status: 'resolved', resolvedAt: h.resolvedAt, updatedAt: h.resolvedAt, conditionActive: false })
       sig.steps.forEach((x) => (x.done = true))
@@ -277,6 +283,8 @@ class SimWorldImpl implements SimWorld {
     if (signal) props.signal = signal
     const alert = this.alerts.get(id)
     if (alert) props.alert = alert
+    const ripple = this.ripples.get(id)
+    if (ripple) props.ripple = ripple
   }
 
   /** where the map shows an actor: its last polled position */
@@ -368,7 +376,6 @@ class SimWorldImpl implements SimWorld {
           place: z.place,
           involved: occ.map((m) => m.ref),
           valueText: `${inside(occ)}, ${s.id} at ${fmtValue(s)} ${s.q.unit}`,
-          at: s.lngLat,
         })
       }
     }
@@ -385,7 +392,6 @@ class SimWorldImpl implements SimWorld {
         place: b.label,
         involved: occ.map((m) => m.ref),
         valueText: `${inside(occ)}, ${left > 0 ? `firing in ${fmtDuration(left)}` : 'fired'}`,
-        at: this.shownAt(occ[0]),
       })
     }
 
@@ -400,7 +406,6 @@ class SimWorldImpl implements SimWorld {
           place,
           involved: [],
           valueText: `Last reading ${fmtDuration(t - s.lastAt)} ago`,
-          at: s.lngLat,
         })
         continue
       }
@@ -415,7 +420,6 @@ class SimWorldImpl implements SimWorld {
         place,
         involved: [],
         valueText: `${fmtValue(s)} ${s.q.unit}, ${s.level} limit ${limit?.toFixed(s.q.digits === 0 ? 0 : 1)}`,
-        at: s.lngLat,
       })
     }
 
@@ -432,12 +436,11 @@ class SimWorldImpl implements SimWorld {
         place: ss.def.place,
         involved: [],
         valueText: `Peak ${q.peak.toFixed(1)} ${ss.q.unit}, ${q.level} limit ${limit}`,
-        at: ss.lngLat,
       })
     }
 
     for (const tr of this.trucks) {
-      const base = { subject: tr.ref, place: ROUTE_LABEL[tr.route], involved: [], at: this.shownAt(tr) }
+      const base = { subject: tr.ref, place: ROUTE_LABEL[tr.route], involved: [] }
       if (tr.fire === 'burning') {
         out.push({ ...base, key: `fire:${tr.id}`, type: 'truckFire', level: 'critical', valueText: 'Suppression released, truck pulled over' })
       } else if (tr.fire === 'none' && tr.temp > TEMP_WARN) {
@@ -458,8 +461,9 @@ class SimWorldImpl implements SimWorld {
   }
 
   private pulse(lngLat: LngLat, level: Level, big = false) {
-    // one ripple per place and level per tick (a zone signal and its limit signal often escalate together;
-    // a tremor's big ripple and its new signal start in the same tick): a repeat only upgrades it to big
+    // one-off ripples (blast firing, the start of a tremor), one per place and level per tick: a repeat only
+    // upgrades it to big. Signals do not come through here: the subject of a signal nobody has acknowledged
+    // yet ripples in a loop on the map instead (props.ripple)
     const tag = `${this.sec}|${lngLat.join()}|${level}`
     if (tag === this.lastPulse) {
       const last = this.pulses[this.pulses.length - 1]
@@ -476,6 +480,7 @@ class SimWorldImpl implements SimWorld {
     const active = this.board.active
     this.inSignal.clear()
     this.alerts.clear()
+    this.ripples.clear()
     const mark = (into: Map<string, SignalLevel>, id: string, level: SignalLevel) => {
       const cur = into.get(id)
       into.set(id, cur ? (worst(cur, level) as SignalLevel) : level)
@@ -485,8 +490,10 @@ class SimWorldImpl implements SimWorld {
         mark(this.inSignal, id, s.level)
         if (s.status === 'new') mark(this.alerts, id, s.level)
       }
+      if (s.status === 'new') mark(this.ripples, s.subject.id, s.level)
     }
-    const badge = (id: string) => (this.inSignal.get(id)?.[0] ?? '-') + (this.alerts.get(id)?.[0] ?? '-')
+    const badge = (id: string) =>
+      (this.inSignal.get(id)?.[0] ?? '-') + (this.alerts.get(id)?.[0] ?? '-') + (this.ripples.get(id)?.[0] ?? '-')
     const sensors = this.instruments.map((s) => s.level[0] + badge(s.id)).join('')
     if (sensors !== this.sig.sensors) {
       this.sig.sensors = sensors
@@ -600,8 +607,14 @@ class SimWorldImpl implements SimWorld {
   snapshot(selectedId: string | null): Snapshot {
     const t = Math.round(this.t * 100) / 100
     const b = this.board
+    // signals nobody has acknowledged yet come first, then the worst level, then the newest
+    const fresh = (s: { status: string }) => (s.status === 'new' ? 1 : 0)
     const active = [...b.active].sort(
-      (x, y) => LEVEL_RANK[y.level] - LEVEL_RANK[x.level] || y.openedAt - x.openedAt || y.updatedAt - x.updatedAt,
+      (x, y) =>
+        fresh(y) - fresh(x) ||
+        LEVEL_RANK[y.level] - LEVEL_RANK[x.level] ||
+        y.openedAt - x.openedAt ||
+        y.updatedAt - x.updatedAt,
     )
     let critical = 0
     let warning = 0

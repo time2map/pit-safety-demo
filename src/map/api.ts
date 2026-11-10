@@ -4,7 +4,7 @@
  * Resolves once the style is loaded and the zone, blast and ripple layers are added; object pins
  * (HTML markers, map/markers.ts) are created on the first apply().
  */
-import type { Basemap, LayerGroup, LngLat, MapFrame, Pulse } from '@/engine/contract'
+import type { LayerGroup, LngLat, MapFrame, Pulse } from '@/engine/contract'
 
 export interface MapAdapter {
   /** push the latest frame; collections whose version did not change are skipped */
@@ -13,7 +13,6 @@ export interface MapAdapter {
   pulse(p: Pulse): void
   /** highlight one object (actor, sensor or zone owner) or clear */
   select(id: string | null): void
-  setBasemap(b: Basemap): void
   setLayer(g: LayerGroup, on: boolean): void
   /** centre the camera on a point at once (no animation) */
   jumpTo(lngLat: LngLat, zoom?: number): void

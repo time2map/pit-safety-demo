@@ -4,6 +4,7 @@ import { Archive, ShieldCheck } from 'lucide-vue-next'
 import { useApp } from '@/engine/keys'
 import { UI } from '@/config/uiCopy'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { pinLeaving } from './listMotion'
 import SignalRow, { clearSignalFlashes } from './SignalRow.vue'
 
 /** The bottom view of the left panel: active or resolved signals. A row opens its signal card. */
@@ -58,7 +59,7 @@ onUpdated(() => {
     </header>
 
     <div ref="scroller" class="thin-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 pb-2.5">
-      <TransitionGroup v-if="list.length" tag="ul" name="signal-list" class="relative flex flex-col gap-2">
+      <TransitionGroup v-if="list.length" tag="ul" name="signal-list" class="relative flex flex-col gap-2" @before-leave="pinLeaving">
         <li v-for="sig in list" :key="sig.id">
           <SignalRow :signal="sig" :now="snapshot.t" />
         </li>

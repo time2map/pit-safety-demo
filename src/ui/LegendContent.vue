@@ -7,24 +7,32 @@ import { CATEGORY_ICON } from './icons'
 import { TONE } from './tone'
 
 /*
- * Swatches mirror the map pins (.psm-marker in styles/app.css) in the normal status colour:
- * every full pin has the same size and a layer that is off shows the same design smaller; vehicles are a white tile in a coloured frame and people a white disc
- * in a coloured ring, both with a dark glyph; instruments a coloured disc with a white ring and a white glyph.
+ * Swatches mirror the map pins (.psm-marker in styles/app.css): every full pin has the same size and a
+ * layer that is off shows the same design smaller. Vehicles are a white tile and people a white disc, both
+ * with a dark glyph and a status ring only at warning or critical; instruments are a disc in their status
+ * colour (normal here) with a white ring and a white glyph.
  */
 const OBJECTS = [
   {
     key: 'vehicle',
     label: UI.legend.vehicles,
     icon: CATEGORY_ICON.vehicle,
-    tile: 'size-5 rounded-[5px] border-2 border-lv-normal bg-white text-neutral-900',
+    tile: 'size-5 rounded-[5px] bg-white text-neutral-900 ring-[0.5px] ring-black/20',
     glyph: 11,
   },
   {
     key: 'person',
     label: UI.legend.people,
     icon: CATEGORY_ICON.person,
-    tile: 'size-5 rounded-full border-2 border-lv-normal bg-white text-neutral-900',
+    tile: 'size-5 rounded-full bg-white text-neutral-900 ring-[0.5px] ring-black/20',
     glyph: 11,
+  },
+  {
+    key: 'problem',
+    label: UI.legend.problem,
+    icon: CATEGORY_ICON.vehicle,
+    tile: 'size-5 rounded-[5px] border-2 border-lv-critical bg-white text-neutral-900',
+    glyph: 10,
   },
   {
     key: 'sensor',
@@ -52,6 +60,13 @@ const OBJECTS = [
           </span>
           {{ UI.legend.unacknowledged }}
         </li>
+        <!-- mirrors the looping ripple around the subject of a signal nobody has acknowledged (map/adapter.ts): one wave at a time -->
+        <li class="col-span-2 flex items-center gap-2">
+          <svg class="-ml-[3px] size-4 shrink-0" viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.5" fill="var(--lv-critical)" fill-opacity="0.12" stroke="var(--lv-critical)" stroke-width="1.5" stroke-opacity="0.8" />
+          </svg>
+          {{ UI.legend.ripple }}
+        </li>
       </ul>
     </section>
 
@@ -68,7 +83,7 @@ const OBJECTS = [
         </li>
         <li class="flex items-center gap-2">
           <span class="flex size-5 shrink-0 items-center justify-center" aria-hidden="true">
-            <span class="flex size-3.5 items-center justify-center rounded-[3px] border-[1.5px] border-lv-normal bg-white text-neutral-900 shadow-[0_1px_2px_rgb(0_0_0/0.3)]">
+            <span class="flex size-3.5 items-center justify-center rounded-[3px] bg-white text-neutral-900 shadow-[0_1px_2px_rgb(0_0_0/0.3)] ring-[0.5px] ring-black/20">
               <component :is="CATEGORY_ICON.vehicle" :size="8" :stroke-width="2.75" />
             </span>
           </span>

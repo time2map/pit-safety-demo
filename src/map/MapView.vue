@@ -21,7 +21,8 @@ onMounted(() => {
     minZoom: SITE.minZoom,
     maxZoom: SITE.maxZoom,
     maxBounds: SITE.maxBounds,
-    attributionControl: { compact: false },
+    // credits live behind the i button in the HUD (ui/MapAttribution.vue)
+    attributionControl: false,
     fadeDuration: 0,
     pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
     dragRotate: true,

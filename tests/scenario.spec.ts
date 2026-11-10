@@ -12,7 +12,7 @@ const SEED = 20261110
 const LOOP = 360
 const BASELINE = ['fault:HT-109', 'limit:IW-04', 'limit:IW-05', 'offline:PZ-03']
 const STORY_KEYS = ['blast:B-1', 'fire:HT-104', 'limit:IW-02', 'limit:SR-1', 'temp:HT-104', 'zone:IW-02-zone']
-const VEHICLE_ROUTES = ['haulA', 'haulB', 'haulC', 'serviceRoad', 'waterRun', 'dumpShuttle', 'dozerScript'] as const
+const VEHICLE_ROUTES = ['haulA', 'haulB', 'haulC', 'serviceRoad', 'dumpShuttle', 'dozerScript'] as const
 
 function run(dt: number, until: number, mode: 'auto' | 'manual' = 'auto', before?: (w: ReturnType<typeof createSimWorld>) => void) {
   const w = createSimWorld({ seed: SEED, mode, epochMs: 0 })
@@ -82,7 +82,7 @@ describe('background traffic', () => {
     const rings = BLASTS.map((b) => ({ c: toLocal(POINTS[b.center]), r: b.peopleRadius + 25 }))
     const clear = (p: Vec) => !zones.some((z) => pointInPolygon(p, z)) && rings.every((r) => distance(p, r.c) > r.r)
 
-    for (const id of ['haulA', 'haulB', 'haulC', 'serviceRoad', 'waterRun', 'dumpShuttle'] as const) {
+    for (const id of ['haulA', 'haulB', 'haulC', 'serviceRoad', 'dumpShuttle'] as const) {
       const path = Path.of(ROUTES[id])
       for (let s = 0; s <= path.length; s += 5) expect(clear(path.at(s)), `${id} at ${s} m`).toBe(true)
     }
@@ -167,17 +167,84 @@ describe('manual mode', () => {
     expect(sensor('IW-04').signal).toBe('warning')
   })
 
+  it('ripples around the subject of a signal until someone acknowledges it, with no one-off ripple on top', () => {
+    const w = createSimWorld({ seed: SEED, mode: 'manual', epochMs: 0 })
+    const pin = (id: string) => {
+      const f = w.mapFrame()
+      return [...f.sensors.features, ...f.actors.features].find((x) => x.properties.id === id)!.properties
+    }
+    const active = () => w.snapshot(null).signalsActive
+    // baseline: IW-04 not acknowledged ripples, IW-05 acknowledged does not
+    expect(pin('IW-04').ripple).toBe('warning')
+    expect(pin('IW-05').ripple).toBeUndefined()
+    w.drainPulses()
+
+    w.triggerStory('ground')
+    const zoneSignal = () => active().find((s) => s.type === 'groundEntry' && s.subject.id === 'IW-02')
+    const limitSignal = () => active().find((s) => s.type === 'movementLimit' && s.subject.id === 'IW-02')
+    while (w.t < 200 && !zoneSignal()) w.step(1)
+    const zone = zoneSignal()!
+    expect(zone.status).toBe('new')
+    // acknowledge the limit signal on the same instrument, so the ripple left can only come from the zone signal
+    const limit = limitSignal()
+    if (limit?.status === 'new') w.acknowledge(limit.id)
+    expect(pin('IW-02').ripple).toBe(zone.level)
+    // whoever is inside gets the badge but no ripple of their own
+    const inside = zone.involved[0]!.id
+    expect(pin(inside).alert).toBe(zone.level)
+    expect(pin(inside).ripple).toBeUndefined()
+    // opening signals adds no one-off ripple on top of the loop
+    expect(w.drainPulses()).toEqual([])
+    // ticking a response step acknowledges it, and the ripple stops
+    w.toggleStep(zone.id, zone.checklist[0]!.id)
+    expect(pin('IW-02').ripple).toBeUndefined()
+  })
+
+  it('ripples around a vehicle or person when it is the subject', () => {
+    const w = createSimWorld({ seed: SEED, mode: 'manual', epochMs: 0 })
+    const ripple = (id: string) => w.mapFrame().actors.features.find((x) => x.properties.id === id)?.properties.ripple
+    w.triggerStory('blast')
+    const entry = () => w.snapshot(null).signalsActive.find((s) => s.type === 'blastEntry' && s.status === 'new')
+    while (w.t < 200 && !entry()) w.step(1)
+    const sig = entry()!
+    expect(sig).toBeDefined()
+    expect(ripple(sig.subject.id)).toBe(sig.level)
+    w.acknowledge(sig.id)
+    expect(ripple(sig.subject.id)).toBeUndefined()
+  })
+
+  it('lists the signals nobody has acknowledged yet first, then by level', () => {
+    const w = createSimWorld({ seed: SEED, mode: 'auto', epochMs: 0 })
+    const rank = { critical: 3, warning: 2, offline: 1 } as const
+    for (const t of [0, 60, 150, 200, 260]) {
+      w.seek(t)
+      const list = w.snapshot(null).signalsActive
+      const order = list.map((s) => [s.status === 'new' ? 1 : 0, rank[s.level]] as const)
+      for (let i = 1; i < order.length; i++) {
+        const [a, b] = [order[i - 1]!, order[i]!]
+        expect(a[0] > b[0] || (a[0] === b[0] && a[1] >= b[1]), `t ${t}: ${list[i - 1]!.title} before ${list[i]!.title}`).toBe(true)
+      }
+    }
+    // at the start the acknowledged critical IW-05 sits below the new warnings and the new offline signal
+    const w0 = createSimWorld({ seed: SEED, mode: 'manual', epochMs: 0 })
+    const ids = () => w0.snapshot(null).signalsActive.map((s) => `${s.subject.id} ${s.status}`)
+    expect(ids()).toEqual(['HT-109 new', 'IW-04 new', 'PZ-03 new', 'IW-05 acknowledged'])
+    // acknowledging drops a signal below every new one; among acknowledged ones the level still leads
+    w0.acknowledge(w0.snapshot(null).signalsActive.find((s) => s.subject.id === 'HT-109')!.id)
+    expect(ids()).toEqual(['IW-04 new', 'PZ-03 new', 'IW-05 acknowledged', 'HT-109 acknowledged'])
+  })
+
   it('builds a snapshot and a map frame', () => {
     const w = createSimWorld({ seed: SEED, mode: 'auto', epochMs: 0 })
     w.seek(170)
     const snap = w.snapshot('HT-104')
-    expect(snap.kpis.equipmentTotal).toBe(20)
+    expect(snap.kpis.equipmentTotal).toBe(19)
     expect(snap.kpis.sensorsTotal).toBe(17)
-    expect(snap.objects.length).toBe(20 + 9 + 17)
+    expect(snap.objects.length).toBe(19 + 9 + 17)
     expect(snap.selected?.series?.v.length).toBeGreaterThan(100)
     const f1 = w.mapFrame()
     const f2 = w.mapFrame()
-    expect(f1.actors.features.length).toBe(29)
+    expect(f1.actors.features.length).toBe(28)
     expect(f2.versions.zones).toBe(f1.versions.zones)
     // positions only change on a poll: the frame is reused until then
     expect(f2.versions.actors).toBe(f1.versions.actors)

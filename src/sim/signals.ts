@@ -4,7 +4,7 @@
  */
 import { CHECKLIST, SIGNAL_TITLE } from '@/config/copy'
 import { LEVEL_RANK } from '@/config/levels'
-import type { ChecklistStep, Level, LngLat, ObjectRef, SignalLevel, SignalStatus, SignalType, SignalView } from '@/engine/contract'
+import type { ChecklistStep, Level, ObjectRef, SignalLevel, SignalStatus, SignalType, SignalView } from '@/engine/contract'
 
 export const CALM_TICKS = 5
 export const RESOLVE_TICKS = 5
@@ -19,8 +19,6 @@ export interface Desired {
   place: string
   involved: ObjectRef[]
   valueText?: string
-  /** pulse location */
-  at: LngLat
 }
 
 export interface Signal {
@@ -62,11 +60,6 @@ export class SignalBoard {
   private seq = 0
   /** keys resolved by hand while the condition was still present: not reopened until it clears or escalates */
   private readonly muted = new Map<string, SignalLevel>()
-  private readonly onPulse: (at: LngLat, level: Level) => void
-
-  constructor(onPulse: (at: LngLat, level: Level) => void) {
-    this.onPulse = onPulse
-  }
 
   private record(t: number, s: Signal, event: TimelineEvent) {
     this.log.push({ t, key: s.key, type: s.type, event, level: s.level })
@@ -117,14 +110,13 @@ export class SignalBoard {
           this.active.push(s)
           this.record(t, s, 'open')
         }
-        this.onPulse(d.at, d.level)
+        // an opened or reopened signal is new: the map ripples around its subject until someone acknowledges it
       } else if (rank(d.level) > rank(s.level)) {
         s.level = d.level
         s.calm = 0
         s.updatedAt = t
         if (d.level === 'critical') s.status = 'new'
         this.record(t, s, 'escalate')
-        this.onPulse(d.at, d.level)
       } else if (rank(d.level) < rank(s.level)) {
         if (++s.calm >= CALM_TICKS) {
           s.level = d.level

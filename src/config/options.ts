@@ -4,7 +4,7 @@
  *   ?t=180         start the world 180 sim seconds in (instant fast-forward)
  *   ?speed=2       initial speed (1, 2 or 4)
  *   ?lowfx=1       no backdrop blur (slow GPUs)
- *   ?dock=0        hide the presenter dock on start (website embed)
+ *   ?dock=1        show the presenter dock on start (it starts folded to one button, H toggles)
  *   ?debug=1       FPS counter and dev helpers
  *   ?seed=7        alternative random seed
  */
@@ -30,7 +30,7 @@ export function readOptions(search: string = typeof location !== 'undefined' ? l
     startT: Math.max(0, num('t', 0)),
     speed: sp === 2 || sp === 4 ? sp : 1,
     lowfx: q.get('lowfx') === '1',
-    dock: q.get('dock') !== '0',
+    dock: q.get('dock') === '1',
     debug: q.get('debug') === '1',
     seed: Math.floor(num('seed', 20261110)),
   }

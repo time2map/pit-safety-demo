@@ -4,9 +4,10 @@ import 'vue-sonner/style.css'
 import { useApp } from '@/engine/keys'
 import { UI } from '@/config/uiCopy'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import BrandHeader from './BrandHeader.vue'
 import IntroCard from './IntroCard.vue'
-import KpiIsland from './KpiIsland.vue'
 import Legend from './Legend.vue'
+import MapAttribution from './MapAttribution.vue'
 import MapToolbar from './MapToolbar.vue'
 import PresenterDock from './PresenterDock.vue'
 import SignalsOutlet from './SignalsOutlet.vue'
@@ -16,8 +17,8 @@ import { useHotkeys } from './useHotkeys'
 /**
  * All floating panels over the full-screen map. Mount inside a positioned parent above the map.
  * The overlay ignores pointer events; each panel opts back in.
- * Left offsets of the free map area (416 and 452 px) follow the signals panel width; keep them
- * in step with the map padding in engine/engine.ts.
+ * Left offsets of the free map area (416 and 452 px) follow the signals panel width, the right
+ * offset (72 px) the map controls column; keep them in step with the map padding in engine/engine.ts.
  */
 const ctx = useApp()
 const { snapshot } = ctx
@@ -29,27 +30,24 @@ useHotkeys(ctx)
   <!-- ignore-non-keyboard-focus: focus moved by script after a mouse click (see SignalsOutlet) must not pop a tooltip -->
   <TooltipProvider :delay-duration="300" :skip-delay-duration="200" ignore-non-keyboard-focus>
     <div class="pointer-events-none absolute inset-0 z-10 overflow-hidden text-foreground">
-      <!-- top: KPI island centred in the free map area right of the panel -->
-      <div class="absolute left-[416px] right-4 top-4 flex justify-center min-[1600px]:left-[452px]">
-        <KpiIsland class="pointer-events-auto" />
+      <!-- left: the product bar with the active signal counts, and under it one panel with the signal list or the signal or object card -->
+      <div class="absolute bottom-4 left-4 top-4 flex w-[384px] flex-col gap-2 min-[1600px]:w-[420px]">
+        <BrandHeader class="pointer-events-auto" />
+        <SignalsOutlet class="pointer-events-auto min-h-0" />
       </div>
 
-      <!-- left: one panel with the brand header over the signal list or the signal or object card; ends above the map toolbar -->
-      <div class="absolute bottom-[90px] left-4 top-4 flex w-[384px] flex-col min-[1600px]:w-[420px]">
-        <SignalsOutlet class="pointer-events-auto max-h-full" />
-      </div>
+      <!-- right: map controls in one column, centred on the right edge -->
+      <MapToolbar class="pointer-events-auto absolute right-4 top-1/2 -translate-y-1/2" />
 
-      <!-- bottom left: map toolbar under the panel; the bottom offset keeps the MapLibre attribution visible -->
-      <MapToolbar class="pointer-events-auto absolute bottom-[34px] left-4" />
-
-      <!-- bottom right: legend -->
-      <div class="pointer-events-auto absolute bottom-[34px] right-4">
+      <!-- bottom right, in the same column: legend and the map attribution, both folded to a button -->
+      <div class="pointer-events-auto absolute bottom-4 right-4 flex w-10 flex-col items-center gap-2">
         <Legend />
+        <MapAttribution />
       </div>
 
-      <!-- narration caption and presenter dock, centred in the free map area right of the panel and clear of the legend -->
+      <!-- narration caption and presenter dock, centred in the free map area between the panel and the map controls -->
       <div
-        class="pointer-events-none absolute bottom-[34px] left-[416px] right-[128px] flex flex-col items-center gap-3 min-[1600px]:left-[452px] min-[1600px]:right-[300px]"
+        class="pointer-events-none absolute bottom-4 left-[416px] right-[72px] flex flex-col items-center gap-3 min-[1600px]:left-[452px]"
       >
         <Transition
           mode="out-in"
@@ -75,7 +73,7 @@ useHotkeys(ctx)
 
     <Toaster
       position="top-center"
-      :offset="{ top: 84 }"
+      :offset="{ top: 16 }"
       :visible-toasts="3"
       :gap="8"
       :duration="9000"

@@ -33,7 +33,6 @@ export function useCriticalToasts(snapshot: ShallowRef<Snapshot>, outlet: Outlet
               title: sig.title,
               kind: sig.subject.kind,
               subject: sig.subject.label,
-              place: sig.place,
               openSignal: () => outlet.openSignal(sig.id),
             },
           })

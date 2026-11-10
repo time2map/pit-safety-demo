@@ -34,7 +34,7 @@ export interface World {
   mapFrame(): MapFrame
   /** UI snapshot; speed, paused and following are filled in by the engine */
   snapshot(selectedId: string | null): Snapshot
-  /** visual events since the last call (new or escalated signals, blast firing, the start of a tremor) */
+  /** one-off ripples since the last call (blast firing, the start of a tremor); signals nobody has acknowledged yet ripple in a loop instead, see ActorProps.ripple */
   drainPulses(): Pulse[]
 
   /** current position of any object (actor, sensor, zone owner) for camera moves */

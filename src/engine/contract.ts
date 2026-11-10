@@ -11,16 +11,16 @@ export type LngLat = [number, number]
 export type Level = 'normal' | 'warning' | 'critical' | 'offline'
 export const LEVELS: Level[] = ['normal', 'warning', 'critical', 'offline']
 
-export type VehicleKind = 'haulTruck' | 'excavator' | 'dozer' | 'drillRig' | 'loader' | 'waterTruck' | 'lightVehicle'
+export type VehicleKind = 'haulTruck' | 'excavator' | 'dozer' | 'drillRig' | 'loader' | 'lightVehicle'
 export type SensorKind = 'inclinometer' | 'piezometer' | 'prism' | 'totalStation' | 'radar' | 'seismic'
 export type ObjectKind = VehicleKind | 'person' | SensorKind
 export type ObjectCategory = 'vehicle' | 'person' | 'sensor'
 
-export const VEHICLE_KINDS: VehicleKind[] = ['haulTruck', 'excavator', 'dozer', 'drillRig', 'loader', 'waterTruck', 'lightVehicle']
+export const VEHICLE_KINDS: VehicleKind[] = ['haulTruck', 'excavator', 'dozer', 'drillRig', 'loader', 'lightVehicle']
 export const SENSOR_KINDS: SensorKind[] = ['inclinometer', 'piezometer', 'prism', 'totalStation', 'radar', 'seismic']
 export const OBJECT_KINDS: ObjectKind[] = [...VEHICLE_KINDS, 'person', ...SENSOR_KINDS]
 /** Objects the map camera can follow: everything that drives or walks (excavators only swing in place). */
-export const FOLLOW_KINDS: ObjectKind[] = ['haulTruck', 'dozer', 'drillRig', 'loader', 'waterTruck', 'lightVehicle', 'person']
+export const FOLLOW_KINDS: ObjectKind[] = ['haulTruck', 'dozer', 'drillRig', 'loader', 'lightVehicle', 'person']
 
 export type SignalType =
   | 'blastEntry' // person or vehicle inside a blast exclusion ring while armed
@@ -109,7 +109,7 @@ export interface ChecklistStep {
 export interface SignalView {
   id: string
   type: SignalType
-  /** sentence case, e.g. "Person inside blast exclusion zone" */
+  /** short, sentence case, e.g. "Person in blast zone" or "Ground movement" (config/copy.ts SIGNAL_TITLE) */
   title: string
   level: SignalLevel
   status: SignalStatus
@@ -170,7 +170,7 @@ export interface Snapshot {
   /** wall-clock epoch (ms) that corresponds to t = 0, for the site clock */
   epochMs: number
   kpis: Kpis
-  /** most severe first, then newest first */
+  /** not yet acknowledged first, then most severe, then newest */
   signalsActive: SignalView[]
   /** most recently resolved first, capped */
   signalsResolved: SignalView[]
@@ -202,6 +202,11 @@ export interface ActorProps {
   signal?: SignalLevel
   /** worst level of the signals this object is in that nobody has acknowledged yet; absent when none (corner badge) */
   alert?: SignalLevel
+  /**
+   * worst level of the not yet acknowledged signals this object is the subject of; absent when none.
+   * The map keeps ripples going around such a pin until the signal is acknowledged or resolved.
+   */
+  ripple?: SignalLevel
 }
 
 export interface SensorProps {
@@ -213,6 +218,8 @@ export interface SensorProps {
   signal?: SignalLevel
   /** see ActorProps.alert */
   alert?: SignalLevel
+  /** see ActorProps.ripple */
+  ripple?: SignalLevel
 }
 
 export interface ZoneProps {
@@ -234,6 +241,7 @@ export interface BlastProps {
   level: Level
 }
 
+/** A one-off ripple. Signals nobody has acknowledged yet ripple in a loop instead (ActorProps.ripple). */
 export interface Pulse {
   /** unique per pulse */
   key: string
@@ -256,7 +264,6 @@ export interface MapFrame {
 /* Engine API exposed to the UI via provide/inject                      */
 /* ------------------------------------------------------------------ */
 
-export type Basemap = 'satellite' | 'light'
 export type LayerGroup = 'vehicles' | 'people' | 'sensors' | 'zones'
 export const LAYER_GROUPS: LayerGroup[] = ['vehicles', 'people', 'sensors', 'zones']
 
@@ -265,7 +272,6 @@ export interface MapControls {
   zoomOut(): void
   resetNorth(): void
   fitSite(): void
-  setBasemap(b: Basemap): void
   setLayer(g: LayerGroup, on: boolean): void
 }
 

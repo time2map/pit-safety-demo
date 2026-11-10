@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import type { SignalView } from '@/engine/contract'
 import { useApp } from '@/engine/keys'
 import { UI } from '@/config/uiCopy'
@@ -7,23 +7,23 @@ import { cn } from '@/lib/utils'
 import { Checkbox } from '@/components/ui/checkbox'
 
 /**
- * Response steps of a signal with their progress, ticked in place in the signal card.
- * Ticking a step of a new signal also acknowledges it (sim/signals.ts).
+ * Response steps of a signal with their progress, ticked in place in the signal card or in a signal
+ * block of an object card. Ticking a step of a new signal also acknowledges it (sim/signals.ts).
+ * `heading` sets the level of the "Response steps" heading to fit the outline around it.
  */
-const props = defineProps<{ signal: SignalView }>()
+const props = withDefaults(defineProps<{ signal: SignalView; heading?: 'h3' | 'h4' | 'h5' }>(), { heading: 'h3' })
 
 const { commands } = useApp()
 const s = computed(() => props.signal)
 const resolved = computed(() => s.value.status === 'resolved')
 const done = computed(() => s.value.checklist.filter((c) => c.done).length)
-/* per instance, so ids stay unique whatever else shows the same signal */
-const headingId = `steps-${useId()}`
 </script>
 
 <template>
-  <section :aria-labelledby="headingId">
+  <!-- a plain block, not a named region: several of these sit in one object card -->
+  <div>
     <div class="mb-1 flex items-center justify-between px-1.5 text-xs">
-      <h3 :id="headingId" class="font-medium text-muted-foreground">{{ UI.signals.responseSteps }}</h3>
+      <component :is="heading" class="font-medium text-muted-foreground">{{ UI.signals.responseSteps }}</component>
       <span class="text-muted-foreground tabular-nums">{{ UI.signals.steps(done, s.checklist.length) }}</span>
     </div>
     <ul class="flex flex-col gap-0.5">
@@ -43,5 +43,5 @@ const headingId = `steps-${useId()}`
         </label>
       </li>
     </ul>
-  </section>
+  </div>
 </template>

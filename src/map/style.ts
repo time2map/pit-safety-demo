@@ -1,10 +1,8 @@
 import type { StyleSpecification } from 'maplibre-gl'
 
-export type Basemap = 'satellite' | 'light'
-
+/** shown by the i button in the bottom right (ui/MapAttribution.vue); the MapLibre attribution control is off */
 export const ATTRIBUTION = {
   satellite: 'Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community',
-  light: 'Esri, HERE, Garmin, &copy; OpenStreetMap contributors, and the GIS user community',
 }
 
 export function baseStyle(): StyleSpecification {
@@ -18,14 +16,6 @@ export function baseStyle(): StyleSpecification {
         maxzoom: 19,
         attribution: ATTRIBUTION.satellite,
       },
-      light: {
-        type: 'raster',
-        // light grey canvas without labels, no key needed
-        tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'],
-        tileSize: 256,
-        maxzoom: 16,
-        attribution: ATTRIBUTION.light,
-      },
     },
     layers: [
       { id: 'bg', type: 'background', paint: { 'background-color': '#e7e5e4' } },
@@ -34,13 +24,6 @@ export function baseStyle(): StyleSpecification {
         type: 'raster',
         source: 'satellite',
         paint: { 'raster-saturation': -0.3, 'raster-contrast': 0.05, 'raster-fade-duration': 150 },
-      },
-      {
-        id: 'base-light',
-        type: 'raster',
-        source: 'light',
-        layout: { visibility: 'none' },
-        paint: { 'raster-fade-duration': 150 },
       },
     ],
   }

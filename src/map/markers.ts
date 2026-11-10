@@ -4,13 +4,13 @@
  * the look lives in styles/app.css under `.psm-marker`, driven by data attributes:
  *   data-id         object id
  *   data-cat        vehicle | person | sensor (shape and colours)
- *   data-level      normal | warning | critical | offline (glyph contrast on instruments)
+ *   data-level      normal | warning | critical | offline (status ring on vehicles and people, disc colour and glyph contrast on instruments)
  *   data-small      the object's layer is off and it is in no signal: a small pin
  *   data-signal     the object is in an active signal (stays full size, drawn above the rest)
  *   data-alert      one of its signals is not acknowledged yet (corner badge)
- *   data-selected   selection ring
- *   data-tip-below  tooltip below the pin when the top bar leaves no room above
- * Zones, blast rings and ripples stay WebGL layers under the markers.
+ *   data-selected   the open object: drawn above the other pins (no ring)
+ *   data-tip-below  tooltip below the pin when the top edge leaves no room above
+ * Zones, blast rings and ripples (one-off and looping, map/adapter.ts) stay WebGL layers under the markers.
  */
 import { Marker, type Map as MapLibreMap } from 'maplibre-gl'
 import { Bell, createElement } from 'lucide'
@@ -58,6 +58,8 @@ export interface Pins {
   setGroups(groups: Record<LayerGroup, boolean>): void
   setInsets(insets: Insets): void
   select(id: string | null): void
+  /** where the pin is drawn now (a pin held under the pointer keeps its place until release) */
+  shownAt(id: string): LngLat | null
   destroy(): void
 }
 
@@ -70,7 +72,8 @@ function glyph(kind: ObjectKind): SVGElement {
   return createElement(GLYPH[kind], { 'aria-hidden': 'true', focusable: 'false' })
 }
 
-export function createPins(map: MapLibreMap, onPick: (id: string) => void): Pins {
+/** `onSettle` runs when a pin held through a position update jumps to its new place on release */
+export function createPins(map: MapLibreMap, onPick: (id: string) => void, onSettle?: (id: string) => void): Pins {
   const pins = new Map<string, Pin>()
   const container = map.getContainer()
   let groups: Record<PinGroup, boolean> = { vehicles: true, people: true, sensors: true }
@@ -78,7 +81,7 @@ export function createPins(map: MapLibreMap, onPick: (id: string) => void): Pins
   let insets: Insets = { top: 0, left: 0 }
 
   /**
-   * Tooltip above the pin, or below it when the top bar leaves no room; nudged sideways to stay
+   * Tooltip above the pin, or below it near the top edge; nudged sideways to stay
    * clear of the map edges and of the left panel, which runs the full height, but always over its own pin.
    */
   const placeTip = (pin: Pin) => {
@@ -172,6 +175,7 @@ export function createPins(map: MapLibreMap, onPick: (id: string) => void): Pins
       if (pin.pendingAt) {
         pin.marker.setLngLat(pin.pendingAt)
         pin.pendingAt = null
+        onSettle?.(pin.props.id)
       }
     }
     el.addEventListener('pointerdown', (e) => {
@@ -235,6 +239,13 @@ export function createPins(map: MapLibreMap, onPick: (id: string) => void): Pins
       selected = id
       const pin = id ? pins.get(id) : undefined
       if (pin) setFlag(pin.el, 'data-selected', true)
+    },
+
+    shownAt(id) {
+      const pin = pins.get(id)
+      if (!pin) return null
+      const { lng, lat } = pin.marker.getLngLat()
+      return [lng, lat]
     },
 
     destroy() {

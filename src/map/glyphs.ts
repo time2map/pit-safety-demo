@@ -1,7 +1,9 @@
 /**
  * Own glyphs for the pit objects, drawn for this demo on lucide's 24 px grid (2 px stroke, round caps and
- * joins), so they sit next to lucide UI icons. Vehicles face right in side view.
- * The same nodes feed the map pins (vanilla lucide createElement) and the panels (createLucideIcon).
+ * joins), so they sit next to lucide UI icons. Sober engineering outlines: vehicles face right in side view on
+ * one shared system (wheels r 2.5 on y 18.5, tracks 12 x 5 on y 16, ground at y 21), few parts per glyph and
+ * no decorative details. The same nodes feed the map pins (vanilla lucide createElement) and the panels
+ * (createLucideIcon).
  */
 import type { ObjectKind } from '@/engine/contract'
 
@@ -9,108 +11,89 @@ import type { ObjectKind } from '@/engine/contract'
 export type GlyphNode = [tag: string, attrs: Record<string, string>][]
 
 const haulTruck: GlyphNode = [
-  ['path', { d: 'M2 5h18v2.5h-3.5L15 12H6L2 8z' }],
-  ['path', { d: 'M17 12V9.5h3l1 2.5v2' }],
-  ['circle', { cx: '7', cy: '17', r: '3' }],
-  ['circle', { cx: '17', cy: '17', r: '3' }],
+  ['path', { d: 'M2 4h16l-2 8H5L2 9z' }],
+  ['path', { d: 'M16 12v4M2 16h20v-5l-3-3h-2' }],
+  ['circle', { cx: '6.5', cy: '18.5', r: '2.5' }],
+  ['circle', { cx: '17.5', cy: '18.5', r: '2.5' }],
 ]
 
 const excavator: GlyphNode = [
-  ['rect', { x: '2', y: '17', width: '13', height: '4', rx: '2' }],
-  ['path', { d: 'M3 17v-5h9v5' }],
-  ['path', { d: 'M7 12V8h3.5l1.5 4' }],
-  ['path', { d: 'M12 14 17 5l4 7' }],
-  ['path', { d: 'M21 12v3h-3' }],
+  ['rect', { x: '2', y: '16', width: '12', height: '5', rx: '2.5' }],
+  ['path', { d: 'M3 16v-4h3V8h5v8' }],
+  ['path', { d: 'M11 13 15 4l6 7v5h-4' }],
 ]
 
 const dozer: GlyphNode = [
-  ['rect', { x: '2', y: '16', width: '13', height: '5', rx: '2.5' }],
-  ['path', { d: 'M3 16v-4h9v4' }],
-  ['path', { d: 'M6 12V7h4l1.5 5' }],
-  ['path', { d: 'M15 18h3' }],
-  ['path', { d: 'M18 10h3v11h-3c1.3-3.5 1.3-7.5 0-11z' }],
+  ['rect', { x: '2', y: '16', width: '12', height: '5', rx: '2.5' }],
+  ['path', { d: 'M3 16V8h5v4h5v4' }],
+  ['path', { d: 'M14 18.5h4' }],
+  ['rect', { x: '18', y: '10', width: '4', height: '11', rx: '1' }],
 ]
 
 const drillRig: GlyphNode = [
-  ['rect', { x: '2', y: '17', width: '12', height: '4', rx: '2' }],
-  ['path', { d: 'M3 17v-5h8v5' }],
-  ['path', { d: 'M3 12V9h4v3' }],
-  ['path', { d: 'M15 2v17M19 2v17M15 2h4M15 8l4 4M19 8l-4 4' }],
-  ['path', { d: 'M17 19v3' }],
+  ['rect', { x: '2', y: '16', width: '12', height: '5', rx: '2.5' }],
+  ['path', { d: 'M3 16v-4h3V8h5v8' }],
+  ['path', { d: 'M11 12h5' }],
+  ['rect', { x: '16', y: '2', width: '4', height: '12', rx: '1' }],
+  ['path', { d: 'M18 14v7' }],
 ]
 
+/* compact body with the cab over the wheelbase, one straight lift arm, the bucket as a closed wedge on the frame line */
 const loader: GlyphNode = [
-  ['circle', { cx: '6', cy: '18', r: '3' }],
-  ['circle', { cx: '15', cy: '18', r: '3' }],
-  ['path', { d: 'M2 16v-4h3V6h5l1 6h1.5' }],
-  ['path', { d: 'M9 16h3' }],
-  ['path', { d: 'M12 12.5 17.5 14' }],
-  ['path', { d: 'M17 11h5l-1 6h-3.5z' }],
-]
-
-const waterTruck: GlyphNode = [
-  ['rect', { x: '2', y: '5', width: '14', height: '9', rx: '3' }],
-  ['path', { d: 'M9 7.5c-1.2 1.6-2 2.6-2 3.5a2 2 0 0 0 4 0c0-.9-.8-1.9-2-3.5z', fill: 'currentColor', stroke: 'none' }],
-  ['path', { d: 'M17 14V8h2.5l2 3v3' }],
-  ['circle', { cx: '6.5', cy: '17.5', r: '2.5' }],
-  ['circle', { cx: '17.5', cy: '17.5', r: '2.5' }],
+  ['path', { d: 'M13.5 16H2v-4h4.5V8h5v8' }],
+  ['path', { d: 'M11.5 10l8 4' }],
+  ['path', { d: 'M19.5 11V16H22z' }],
+  ['circle', { cx: '4.5', cy: '18.5', r: '2.5' }],
+  ['circle', { cx: '13.5', cy: '18.5', r: '2.5' }],
 ]
 
 const lightVehicle: GlyphNode = [
-  ['path', { d: 'M5 17H3a1 1 0 0 1-1-1v-3h9l2-4h5l3 4h1a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2' }],
-  ['path', { d: 'M9 17h6' }],
-  ['circle', { cx: '7', cy: '17', r: '2' }],
-  ['circle', { cx: '17', cy: '17', r: '2' }],
-  ['path', { d: 'M4 13V3l4 1.5L4 6' }],
+  ['path', { d: 'M4 18.5H2V12h8V8h5l4 4h3v6.5h-2' }],
+  ['path', { d: 'M9 18.5h6' }],
+  ['circle', { cx: '6.5', cy: '18.5', r: '2.5' }],
+  ['circle', { cx: '17.5', cy: '18.5', r: '2.5' }],
 ]
 
 const person: GlyphNode = [
-  ['path', { d: 'M6.5 9.5a5.5 5.5 0 0 1 11 0' }],
-  ['path', { d: 'M5 9.5h14' }],
-  ['path', { d: 'M12 4v2.5' }],
-  ['path', { d: 'M8.5 9.5a3.5 3.5 0 0 0 7 0' }],
-  ['path', { d: 'M5 21v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1' }],
+  ['path', { d: 'M8 7.5a4 4 0 0 1 8 0' }],
+  ['path', { d: 'M6.5 7.5h11' }],
+  ['path', { d: 'M8.5 7.5a3.5 3.5 0 0 0 7 0' }],
+  ['path', { d: 'M4 21v-1.5a4.5 4.5 0 0 1 4.5-4.5h7a4.5 4.5 0 0 1 4.5 4.5V21' }],
 ]
 
 const inclinometer: GlyphNode = [
-  ['path', { d: 'M4 21h16' }],
-  ['path', { d: 'M8 21V3' }],
-  ['path', { d: 'M8 21 17 4' }],
-  ['path', { d: 'M8 12a9 9 0 0 1 3.8.9' }],
+  ['path', { d: 'M3 4h18' }],
+  ['path', { d: 'M11 4v7l-3 4v6h5v-6l3-4V4' }],
 ]
 
 const piezometer: GlyphNode = [
-  ['path', { d: 'M9 3v14a3 3 0 0 0 6 0V3' }],
-  ['path', { d: 'M9 11h6v6a3 3 0 0 1-6 0z', fill: 'currentColor', stroke: 'none' }],
-  ['path', { d: 'M2 11h4' }],
-  ['path', { d: 'M18 11h4' }],
+  ['path', { d: 'M2 7h7M15 7h7' }],
+  ['path', { d: 'M9 3v18h6V3' }],
+  ['rect', { x: '9', y: '12', width: '6', height: '9', fill: 'currentColor', stroke: 'none' }],
 ]
 
 const prism: GlyphNode = [
   ['circle', { cx: '12', cy: '9', r: '6.5' }],
-  ['path', { d: 'M12 5.5 15.5 11.5h-7z' }],
-  ['path', { d: 'M12 15.5V22' }],
+  ['path', { d: 'M12 9H8A4 4 0 0 1 12 5zM12 9h4a4 4 0 0 1-4 4z', fill: 'currentColor', stroke: 'none' }],
+  ['path', { d: 'M12 15.5V21M9 21h6' }],
 ]
 
 const totalStation: GlyphNode = [
   ['rect', { x: '8', y: '2', width: '8', height: '8', rx: '1.5' }],
-  ['circle', { cx: '12', cy: '6', r: '1.5' }],
-  ['path', { d: 'M9 13h6' }],
-  ['path', { d: 'M12 13 6 22' }],
-  ['path', { d: 'm12 13 6 9' }],
-  ['path', { d: 'M12 13v9' }],
+  ['circle', { cx: '12', cy: '6', r: '1.5', fill: 'currentColor', stroke: 'none' }],
+  ['path', { d: 'M12 10v3M7 13h10M9 13l-4 8M15 13l4 8M12 13v8' }],
 ]
 
 const radar: GlyphNode = [
-  ['path', { d: 'M3 10a8 8 0 0 0 11 11z' }],
-  ['path', { d: 'm8.5 15.5 3.5-3.5' }],
-  ['circle', { cx: '12.5', cy: '11.5', r: '1' }],
-  ['path', { d: 'M15 6a3 3 0 0 1 3 3' }],
-  ['path', { d: 'M15 2a7 7 0 0 1 7 7' }],
+  ['path', { d: 'M6 9.5a4.95 4.95 0 0 0 7 7z' }],
+  ['path', { d: 'M9.5 13l2.5-2.5' }],
+  ['path', { d: 'M9.5 18v3M7 21h5' }],
+  ['path', { d: 'M12 6.5a4 4 0 0 1 4 4' }],
+  ['path', { d: 'M12 2.5a8 8 0 0 1 8 8' }],
 ]
 
 const seismic: GlyphNode = [
-  ['path', { d: 'M2 12h4l2-5 3 11 3-14 2.5 11 1.5-3h4' }],
+  ['path', { d: 'M2 12h3l2-7 3.5 14 3.5-11.5 3 8 2.5-4.5 1.5 1h1' }],
 ]
 
 export const PIT_GLYPH: Record<ObjectKind, GlyphNode> = {
@@ -119,7 +102,6 @@ export const PIT_GLYPH: Record<ObjectKind, GlyphNode> = {
   dozer,
   drillRig,
   loader,
-  waterTruck,
   lightVehicle,
   person,
   inclinometer,

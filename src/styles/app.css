@@ -162,22 +162,8 @@ html.lowfx .glass-soft {
 }
 
 /* MapLibre overrides */
-.maplibregl-map,
-.maplibregl-ctrl,
-.maplibregl-ctrl-attrib {
+.maplibregl-map {
   font-family: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-}
-.maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib {
-  background: rgb(255 255 255 / 0.55);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border-radius: 9999px;
-  margin: 0 8px 6px 0;
-  font-size: 10px;
-  color: #525252;
-}
-.maplibregl-ctrl-attrib a {
-  color: #404040;
 }
 .maplibregl-canvas {
   outline: none;
@@ -234,23 +220,24 @@ html.lowfx .glass-soft {
 }
 
 /*
- * Map pins (map/markers.ts). A full pin is 34 px and a pin whose layer is off 18 px, for every kind.
- * Vehicles: white tile in a frame of the status colour; people: the same as a disc; both with a
- * dark glyph. Instruments: a disc of the status colour in a white ring with a white glyph.
+ * Map pins (map/markers.ts), sized for a 1920 x 1080 screen: a full pin is 28 px and a pin whose layer
+ * is off (and is in no signal) 14 px, for every kind. Vehicles: white tile; people: the same as a disc;
+ * both with a dark glyph, and a ring in the status colour only at warning or critical. Instruments: a
+ * disc of the status colour in a white ring with a white glyph, at every level.
  * --pin-c and --badge-c are set per marker to var(--lv-<level>).
  */
 .psm-marker {
   --pin-c: var(--lv-normal);
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   z-index: 1;
 }
 .psm-marker[data-small] {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   z-index: 0;
 }
-/* pins in a signal above the rest, the selected one above those, the hovered one on top */
+/* pins in a signal above the rest, the selected one above those, the hovered one on top; a selected pin has no ring of its own, its card in the left panel shows it */
 .psm-marker[data-signal] {
   z-index: 2;
 }
@@ -270,25 +257,34 @@ html.lowfx .glass-soft {
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 3.25px solid var(--pin-c);
-  border-radius: 8.5px;
+  border: 0;
+  border-radius: 7px;
   background: #fff;
   color: #171717;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  /* a hairline keeps the white tile crisp on pale ground */
+  box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.18), 0 1px 3px rgb(0 0 0 / 0.35);
   cursor: pointer;
   outline: none;
   transition: transform 120ms ease-out;
 }
 .psm-pin svg {
-  width: 19px;
-  height: 19px;
+  width: 16px;
+  height: 16px;
   stroke-width: 2.25;
 }
 .psm-marker[data-cat='person'] .psm-pin {
   border-radius: 50%;
 }
+/* a vehicle or person with a problem: ring in the status colour (whole pixels: Chrome rounds borders down) */
+.psm-marker:is([data-level='warning'], [data-level='critical']):not([data-cat='sensor']) .psm-pin {
+  border: 3px solid var(--pin-c);
+}
+/* a vehicle out of service: no ring, a grey glyph */
+.psm-marker[data-level='offline']:not([data-cat='sensor']) .psm-pin {
+  color: var(--lv-offline);
+}
 .psm-marker[data-cat='sensor'] .psm-pin {
-  border: 3px solid #fff;
+  border: 2px solid #fff;
   border-radius: 50%;
   background: var(--pin-c);
   color: #fff;
@@ -297,55 +293,33 @@ html.lowfx .glass-soft {
 .psm-marker[data-cat='sensor'][data-level='warning'] .psm-pin {
   color: #171717;
 }
-.psm-marker[data-small] .psm-pin {
+/* small pins keep a 2 px ring; [data-level] (on every marker) lifts this to the specificity of the ring rule above, and it comes later */
+.psm-marker[data-small][data-level] .psm-pin {
   border-width: 2px;
-  border-radius: 5px;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  border-radius: 4px;
+  box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.18), 0 1px 2px rgb(0 0 0 / 0.35);
 }
 .psm-marker[data-small][data-cat='person'] .psm-pin,
 .psm-marker[data-small][data-cat='sensor'] .psm-pin {
   border-radius: 50%;
 }
 .psm-marker[data-small] .psm-pin svg {
-  width: 11px;
-  height: 11px;
+  width: 9px;
+  height: 9px;
   stroke-width: 2.75;
 }
 .psm-marker:hover .psm-pin {
   transform: scale(1.06);
 }
 
-/* selection ring behind the pin */
-.psm-marker::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 50px;
-  height: 50px;
-  border: 2px solid #171717;
-  border-radius: 50%;
-  background: rgb(255 255 255 / 0.4);
-  opacity: 0;
-  pointer-events: none;
-  translate: -50% -50%;
-}
-.psm-marker[data-small]::before {
-  width: 28px;
-  height: 28px;
-}
-.psm-marker[data-selected]::before {
-  opacity: 1;
-}
-
 /* corner badge while a signal is not acknowledged; its centre sits on the tile corner or the disc edge at 45 degrees */
 .psm-badge {
   position: absolute;
-  top: 24.5px;
-  left: 24.5px;
+  top: 20px;
+  left: 20px;
   display: none;
-  width: 15px;
-  height: 15px;
+  width: 13px;
+  height: 13px;
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
@@ -357,14 +331,14 @@ html.lowfx .glass-soft {
   cursor: pointer;
 }
 .psm-badge svg {
-  width: 9px;
-  height: 9px;
-  stroke-width: 2.6;
+  width: 8px;
+  height: 8px;
+  stroke-width: 2.75;
 }
 .psm-marker[data-cat='person'] .psm-badge,
 .psm-marker[data-cat='sensor'] .psm-badge {
-  top: 22.5px;
-  left: 22.5px;
+  top: 18px;
+  left: 18px;
 }
 .psm-marker[data-alert]:not([data-small]) .psm-badge {
   display: flex;
@@ -417,7 +391,7 @@ html.lowfx .glass-soft {
 [data-sonner-toast]:not([data-styled='true']) {
   cursor: default;
 }
-/* toasts centred in the free map area right of the left panel, under the KPI island (offsets as in Hud.vue) */
+/* toasts centred in the free map area right of the left panel (offsets as in Hud.vue) */
 body [data-sonner-toaster][data-x-position='center'] {
   left: calc(50% + 200px);
 }

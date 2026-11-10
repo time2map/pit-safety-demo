@@ -6,8 +6,6 @@ import type { BlastPhase, ObjectKind, SignalType, StoryId } from '@/engine/contr
 
 export const PRODUCT = {
   name: 'Pit Safety Monitor',
-  site: 'Demo pit',
-  simulated: 'Simulated data',
 }
 
 export const KIND_LABEL: Record<ObjectKind, string> = {
@@ -16,7 +14,6 @@ export const KIND_LABEL: Record<ObjectKind, string> = {
   dozer: 'Dozer',
   drillRig: 'Drill rig',
   loader: 'Wheel loader',
-  waterTruck: 'Water truck',
   lightVehicle: 'Light vehicle',
   person: 'Person',
   inclinometer: 'Inclinometer well',
@@ -27,30 +24,24 @@ export const KIND_LABEL: Record<ObjectKind, string> = {
   seismic: 'Seismograph',
 }
 
+/** Short signal titles for the list, the cards and the toasts: what happened, in a few words. */
 export const SIGNAL_TITLE: Record<SignalType, (ctx: { people: number; vehicles: number }) => string> = {
-  blastEntry: ({ people, vehicles }) =>
-    people > 0 && vehicles > 0
-      ? 'People and equipment inside blast exclusion zone'
-      : people > 0
-        ? people > 1
-          ? 'People inside blast exclusion zone'
-          : 'Person inside blast exclusion zone'
-        : 'Equipment inside blast exclusion zone',
-  groundEntry: ({ people, vehicles }) =>
-    people > 0 && vehicles > 0
-      ? 'People and equipment inside ground movement zone'
-      : people > 0
-        ? people > 1
-          ? 'People inside ground movement zone'
-          : 'Person inside ground movement zone'
-        : 'Equipment inside ground movement zone',
-  movementLimit: () => 'Ground movement above limit',
-  pressureLimit: () => 'Pore pressure above limit',
-  engineTemp: () => 'Engine bay temperature high',
-  truckFire: () => 'Fire detected on haul truck',
-  suppressionFault: () => 'Fire suppression system fault',
-  sensorOffline: () => 'Instrument not reporting',
-  seismicEvent: () => 'Seismic event detected',
+  blastEntry: ({ people, vehicles }) => `${who(people, vehicles)} in blast zone`,
+  groundEntry: ({ people, vehicles }) => `${who(people, vehicles)} in movement zone`,
+  movementLimit: () => 'Ground movement',
+  pressureLimit: () => 'Pore pressure',
+  engineTemp: () => 'Engine overheating',
+  truckFire: () => 'Fire',
+  suppressionFault: () => 'Suppression fault',
+  sensorOffline: () => 'No data',
+  seismicEvent: () => 'Seismic event',
+}
+
+/** who is inside a zone, for the zone entry titles */
+function who(people: number, vehicles: number): string {
+  if (people > 0 && vehicles > 0) return 'People and equipment'
+  if (people > 0) return people > 1 ? 'People' : 'Person'
+  return 'Equipment'
 }
 
 /**

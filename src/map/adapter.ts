@@ -6,7 +6,7 @@ import type * as maplibregl from 'maplibre-gl'
 import type { Feature, FeatureCollection, Point } from 'geojson'
 import { LEVEL_COLOR } from '@/config/levels'
 import { SITE } from '@/config/site'
-import { LAYER_GROUPS, type Basemap, type LayerGroup, type LngLat, type MapFrame, type Pulse } from '@/engine/contract'
+import { LAYER_GROUPS, type LayerGroup, type Level, type LngLat, type MapFrame, type Pulse } from '@/engine/contract'
 import type { MapAdapter } from './api'
 import { FOLLOW_MOVE, installInteractions } from './interactions'
 import { L, SRC, addLayers, applyGroups, removeLayers, setSelectedZone } from './layers'
@@ -17,11 +17,18 @@ type FrameKey = keyof MapFrame['versions']
 type LayerKey = 'zones' | 'blasts'
 const LAYER_KEYS: LayerKey[] = ['zones', 'blasts']
 
-/** Two expanding waves per pulse. Seconds and pixels. The waves start at the edge of a 34 px pin, which sits above them. */
+/** Two expanding waves per pulse. Seconds and pixels. The waves start at the edge of a 28 px pin, which sits above them. */
 const PULSE = {
-  small: { total: 1.8, wave: 1.2, gap: 0.6, r0: 17, r1: 60, w: 2.5 },
-  big: { total: 3.4, wave: 2.3, gap: 1.1, r0: 21, r1: 130, w: 3.5 },
+  small: { total: 1.8, wave: 1.2, gap: 0.6, r0: 14, r1: 54, w: 2.5 },
+  big: { total: 3.4, wave: 2.3, gap: 1.1, r0: 18, r1: 120, w: 3.5 },
 }
+/**
+ * A pin whose signal nobody has acknowledged yet sends out one slow wave at a time, from the pin edge
+ * to the small pulse radius: the wave takes `wave` seconds, then a short rest, one cycle every `period`.
+ */
+const LOOP = { wave: 2, period: 2.8 }
+/** with reduced motion the loop is one still ring at this radius (px) instead */
+const STILL_R = 22
 /** the signals panel ends this far left of the padding the camera keeps clear (see engine padding()) */
 const PANEL_GUTTER = 32
 const MAX_PULSES = 24
@@ -52,7 +59,8 @@ export async function createMapAdapter(map: maplibregl.Map): Promise<MapAdapter>
   let selected: string | null = null
   let pickCb: ((id: string | null) => void) | null = null
   let destroyed = false
-  const pins = createPins(map, (id) => pickCb?.(id))
+  // the settle callback reaches onPinSettle (defined below) only after a pointer release, long after setup
+  const pins = createPins(map, (id) => pickCb?.(id), (id) => onPinSettle(id))
 
   const noop = () => {}
   const push = (src: maplibregl.GeoJSONSource, data: FeatureCollection) => {
@@ -91,10 +99,13 @@ export async function createMapAdapter(map: maplibregl.Map): Promise<MapAdapter>
 
   /* ---------------- pulses ---------------- */
 
+  /** one-off ripples (blast firing, a tremor): short-lived, so redrawn by data each frame while they run */
   const live: { p: Pulse; t0: number }[] = []
   let pulseRaf = 0
 
   const pulseTick = (now: number) => {
+    pulseRaf = 0
+    if (destroyed) return
     const features: Feature<Point>[] = []
     for (let i = live.length - 1; i >= 0; i--) {
       const { p, t0 } = live[i]!
@@ -115,8 +126,109 @@ export async function createMapAdapter(map: maplibregl.Map): Promise<MapAdapter>
       }
     }
     push(pulseSource, { type: 'FeatureCollection', features })
-    pulseRaf = live.length ? requestAnimationFrame(pulseTick) : 0
+    if (live.length) pulseRaf = requestAnimationFrame(pulseTick)
   }
+
+  /* ---------------- looping ripples ---------------- */
+
+  /**
+   * Pins whose signal nobody has acknowledged yet (props.ripple), by id, at the position their pin shows.
+   * The source holds one still point per pin and changes only when that set, a level or a position does
+   * (at most once per position poll). The wave is one layer whose radius and opacity are set as plain
+   * values each frame from one shared clock, like the zone attention breathing, so the animation costs
+   * no tile reloads. All pins ripple in step.
+   */
+  const looping = new Map<string, { at: LngLat; level: Level; from: 'actors' | 'sensors' }>()
+  const loopSource = source(SRC.loops)
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+  let loopKey = ''
+  let loopRaf = 0
+  let loopT0 = 0
+  /** last value written per layer and property, so unchanged values are not sent again */
+  const loopPaint = new Map<string, number>()
+
+  const setLoopPaint = (layer: string, prop: 'circle-radius' | 'circle-opacity' | 'circle-stroke-opacity', v: number) => {
+    const k = `${layer}|${prop}`
+    if (loopPaint.get(k) === v) return
+    loopPaint.set(k, v)
+    map.setPaintProperty(layer, prop, v)
+  }
+
+  /** the wave at `phase` seconds into the cycle; opacity 0 during the rest */
+  const paintWave = (phase: number) => {
+    const s = PULSE.small
+    const k = phase / LOOP.wave
+    const on = k > 0 && k < 1
+    const o = on ? Math.round((1 - k) ** 1.5 * 90) / 100 : 0
+    if (on) setLoopPaint(L.loop, 'circle-radius', Math.round((s.r0 + (s.r1 - s.r0) * easeOut(k)) * 2) / 2)
+    setLoopPaint(L.loop, 'circle-stroke-opacity', o)
+    setLoopPaint(L.loop, 'circle-opacity', Math.round(o * 16) / 100)
+  }
+
+  const loopTick = (now: number) => {
+    loopRaf = 0
+    if (destroyed || !looping.size) return
+    paintWave(((now - loopT0) / 1000) % LOOP.period)
+    loopRaf = requestAnimationFrame(loopTick)
+  }
+
+  /** start, stop or still the loop to match the flagged pins and the motion preference */
+  const runLoop = () => {
+    if (destroyed) return
+    const animate = looping.size > 0 && !reducedMotion.matches
+    if (animate && !loopRaf) {
+      loopT0 = performance.now()
+      loopRaf = requestAnimationFrame(loopTick)
+    } else if (!animate && loopRaf) {
+      cancelAnimationFrame(loopRaf)
+      loopRaf = 0
+    }
+    if (!animate) {
+      // reduced motion: one still ring per pin instead of the wave
+      const on = looping.size > 0
+      setLoopPaint(L.loop, 'circle-radius', STILL_R)
+      setLoopPaint(L.loop, 'circle-stroke-opacity', on ? 0.7 : 0)
+      setLoopPaint(L.loop, 'circle-opacity', on ? 0.1 : 0)
+    }
+  }
+
+  const writeLoops = () => {
+    const features: Feature<Point>[] = []
+    for (const r of looping.values()) {
+      features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: r.at }, properties: { c: LEVEL_COLOR[r.level].map } })
+    }
+    const key = features.map((f) => `${f.geometry.coordinates.join()}|${f.properties!.c}`).join(';')
+    if (key !== loopKey) {
+      loopKey = key
+      push(loopSource, { type: 'FeatureCollection', features })
+    }
+    runLoop()
+  }
+
+  /** take the flagged pins of a collection that changed, where their pins show them (a held pin waits) */
+  const syncLooping = (from: 'actors' | 'sensors', features: { properties: { id: string; ripple?: Level }; geometry: { coordinates: number[] } }[]) => {
+    const flagged = new Set<string>()
+    for (const f of features) {
+      const { id, ripple } = f.properties
+      if (!ripple) continue
+      flagged.add(id)
+      looping.set(id, { at: pins.shownAt(id) ?? (f.geometry.coordinates as LngLat), level: ripple, from })
+    }
+    for (const [id, r] of looping) if (r.from === from && !flagged.has(id)) looping.delete(id)
+    writeLoops()
+  }
+
+  /** a pin held through a poll jumped to its new place on release: its ripple follows */
+  const onPinSettle = (id: string) => {
+    const r = looping.get(id)
+    const at = pins.shownAt(id)
+    if (!r || !at) return
+    r.at = at
+    writeLoops()
+  }
+
+  const onMotionPref = () => runLoop()
+  reducedMotion.addEventListener('change', onMotionPref)
 
   /* ---------------- camera helpers ---------------- */
 
@@ -264,6 +376,7 @@ export async function createMapAdapter(map: maplibregl.Map): Promise<MapAdapter>
         if (v === seen[k]) continue
         seen[k] = v
         pins.update(frame[k].features)
+        syncLooping(k, frame[k].features)
       }
       if (followId !== null) track(frame)
     },
@@ -280,12 +393,6 @@ export async function createMapAdapter(map: maplibregl.Map): Promise<MapAdapter>
       pins.select(id)
       selected = id
       setSelectedZone(map, id)
-    },
-
-    setBasemap(b: Basemap) {
-      if (destroyed) return
-      if (map.getLayer('base-satellite')) map.setLayoutProperty('base-satellite', 'visibility', b === 'satellite' ? 'visible' : 'none')
-      if (map.getLayer('base-light')) map.setLayoutProperty('base-light', 'visibility', b === 'light' ? 'visible' : 'none')
     },
 
     setLayer(g, on) {
@@ -353,6 +460,10 @@ export async function createMapAdapter(map: maplibregl.Map): Promise<MapAdapter>
       cancelAnimationFrame(pulseRaf)
       pulseRaf = 0
       live.length = 0
+      cancelAnimationFrame(loopRaf)
+      loopRaf = 0
+      looping.clear()
+      reducedMotion.removeEventListener('change', onMotionPref)
       pickCb = null
       stopFollow()
       followEndCb = null

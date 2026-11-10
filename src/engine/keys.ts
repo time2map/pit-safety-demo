@@ -1,5 +1,5 @@
 import { inject, type InjectionKey, type Ref, type ShallowRef } from 'vue'
-import type { Basemap, EngineCommands, LayerGroup, MapControls, Snapshot } from './contract'
+import type { EngineCommands, LayerGroup, MapControls, Snapshot } from './contract'
 import type { AppOptions } from '@/config/options'
 import type { Outlet } from './outlet'
 
@@ -8,7 +8,6 @@ export interface AppContext {
   snapshot: ShallowRef<Snapshot>
   commands: EngineCommands
   map: MapControls
-  basemap: Ref<Basemap>
   /** reactive record, mutate through map.setLayer */
   layers: Record<LayerGroup, boolean>
   options: AppOptions

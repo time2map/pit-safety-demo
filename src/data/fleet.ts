@@ -15,7 +15,6 @@ export const ROUTE_LABEL: Record<RouteId, string> = {
   haulC: 'Haul road C',
   serviceRoad: 'Service road',
   dumpShuttle: 'Dump',
-  waterRun: 'Haul road B',
   dozerScript: 'West wall',
   surveyorScript: 'East floor',
 }
@@ -86,12 +85,6 @@ export const VEHICLES: VehicleDef[] = [
     kind: 'loader',
     operator: 'K. Ostrowski',
     motion: { type: 'jog', point: 'WL01', toward: 'dump', length: 22, speed: 2.5, pause: 4, state: 'Working at the dump' },
-  },
-  {
-    id: 'WT-01',
-    kind: 'waterTruck',
-    operator: 'L. Meyer',
-    motion: { type: 'shuttle', route: 'waterRun', speed: 5, pause: 6, lane: 8, state: 'Watering haul road B' },
   },
   {
     id: 'LV-01',

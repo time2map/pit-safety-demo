@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { ChevronRight, ListChecks } from 'lucide-vue-next'
 import type { SignalView } from '@/engine/contract'
 import { useApp } from '@/engine/keys'
+import { LEVEL_LABEL } from '@/config/levels'
 import { UI } from '@/config/uiCopy'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -12,7 +13,10 @@ import { CATEGORY_ICON } from './icons'
 import SignalIcon from './SignalIcon.vue'
 import { statusTone } from './tone'
 
-/** One signal in the list. The whole row opens the signal card, with its response steps right under the header. */
+/**
+ * One signal in the list, kept short: what happened and on which object, its status and age. The place
+ * and the reading with its limit are left to the signal card. The whole row opens that card.
+ */
 const props = defineProps<{ signal: SignalView; now: number }>()
 
 const { outlet } = useApp()
@@ -65,13 +69,12 @@ export function clearSignalFlashes() {
 
     <span class="flex min-w-0 flex-1 flex-col gap-0.5">
       <span class="flex items-start justify-between gap-2">
-        <span class="line-clamp-2 text-sm font-medium leading-snug text-foreground">{{ s.title }}</span>
+        <span class="line-clamp-2 text-sm font-medium leading-snug text-foreground">
+          {{ s.title }}<span class="sr-only">, {{ LEVEL_LABEL[s.level] }}</span>
+        </span>
         <Badge :tone="statusTone(s)" class="mt-px">{{ UI.signals.status[s.status] }}</Badge>
       </span>
-      <span class="line-clamp-2 break-words text-xs text-muted-foreground">
-        <span class="font-medium text-neutral-700">{{ s.subject.label }}</span>, {{ s.place }}
-      </span>
-      <span v-if="s.valueText" class="line-clamp-2 break-words text-xs text-neutral-700 tabular-nums">{{ s.valueText }}</span>
+      <span class="truncate text-xs font-medium text-neutral-700">{{ s.subject.label }}</span>
       <span class="mt-1 flex items-center gap-3 text-xs text-muted-foreground tabular-nums">
         <span>{{ age }}</span>
         <Tooltip v-if="s.people > 0">
