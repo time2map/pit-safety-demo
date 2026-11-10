@@ -1,7 +1,7 @@
 import type { Level } from '@/engine/contract'
 
 /**
- * Status palette. Tailwind-based tones that match the AI lib style guide.
+ * Status palette, based on Tailwind tones.
  * Map colours for the WebGL zone, blast and ripple layers; pins, badges and the panels use the
  * --lv-* CSS variables in styles/app.css (keep the hex values in step).
  */

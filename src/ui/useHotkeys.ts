@@ -2,7 +2,7 @@ import { useEventListener } from '@vueuse/core'
 import { FOLLOW_KINDS, type StoryId } from '@/engine/contract'
 import type { AppContext } from '@/engine/keys'
 
-/* physical keys (e.code), so the shortcuts work on any input layout, Russian included */
+/* physical keys (e.code), so the shortcuts work on any keyboard layout */
 const STORY_BY_CODE: Record<string, StoryId> = {
   Digit1: 'ground',
   Digit2: 'blast',
@@ -25,7 +25,7 @@ function isTyping(el: EventTarget | null): boolean {
 /**
  * Space play/pause, 1 to 4 stories (ignored during autoplay, like the locked buttons), R reset, H dock,
  * F follow the selected vehicle or person, Escape back in the left panel.
- * Matched by physical key, so R, H and F also work with a non-latin layout active.
+ * Matched by physical key, so R, H and F work on any keyboard layout.
  * Space on a control focused by keyboard keeps its native meaning; on a control
  * focused by a mouse click it blurs the control and toggles pause instead.
  */
