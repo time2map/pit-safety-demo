@@ -1,0 +1,440 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'maplibre-gl/dist/maplibre-gl.css';
+
+/* Inter, latin subsets only */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fonts/inter-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --radius: 0.875rem;
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #171717;
+  --primary-foreground: #fafafa;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  --destructive: #e7000b;
+  --border: rgb(0 0 0 / 0.08);
+  --input: rgb(0 0 0 / 0.1);
+  --ring: #a3a3a3;
+
+  /* status levels */
+  --lv-critical: #dc2626;
+  --lv-critical-bg: #fef2f2;
+  --lv-critical-fg: #b91c1c;
+  --lv-warning: #eab308;
+  --lv-warning-bg: #fef9c3;
+  --lv-warning-fg: #a16207;
+  --lv-normal: #16a34a;
+  --lv-normal-bg: #f0fdf4;
+  --lv-normal-fg: #15803d;
+  --lv-offline: #64748b;
+  --lv-offline-bg: #f1f5f9;
+  --lv-offline-fg: #475569;
+
+  /* glass */
+  --glass-panel: rgb(255 255 255 / 0.66);
+  --glass-soft: rgb(255 255 255 / 0.56);
+  --glass-element: rgb(255 255 255 / 0.72);
+  --glass-edge: rgb(255 255 255 / 0.65);
+  --glass-highlight: inset 0 1px 2px rgb(255 255 255 / 0.4);
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-lv-critical: var(--lv-critical);
+  --color-lv-critical-bg: var(--lv-critical-bg);
+  --color-lv-critical-fg: var(--lv-critical-fg);
+  --color-lv-warning: var(--lv-warning);
+  --color-lv-warning-bg: var(--lv-warning-bg);
+  --color-lv-warning-fg: var(--lv-warning-fg);
+  --color-lv-normal: var(--lv-normal);
+  --color-lv-normal-bg: var(--lv-normal-bg);
+  --color-lv-normal-fg: var(--lv-normal-fg);
+  --color-lv-offline: var(--lv-offline);
+  --color-lv-offline-bg: var(--lv-offline-bg);
+  --color-lv-offline-fg: var(--lv-offline-fg);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 22px;
+  --radius-3xl: 26px;
+}
+
+/* Floating glass panel (Figma Glass/Floating) */
+@utility glass-floating {
+  background: var(--glass-panel);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid var(--glass-edge);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.12), var(--glass-highlight);
+}
+
+/* Soft glass for smaller floating elements (Figma Glass/Soft) */
+@utility glass-soft {
+  background: var(--glass-soft);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--glass-edge);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.06), var(--glass-highlight);
+}
+
+/* Inner element on top of glass, no blur */
+@utility glass-element {
+  background: var(--glass-element);
+  border: 1px solid rgb(255 255 255 / 0.7);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), var(--glass-highlight);
+}
+
+html.lowfx .glass-floating,
+html.lowfx .glass-soft {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgb(255 255 255 / 0.93);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body,
+  #app {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+  body {
+    @apply bg-neutral-200 text-foreground font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  button {
+    cursor: pointer;
+  }
+  /* preflight gives kbd a monospace stack; shortcut hints stay in Inter */
+  kbd {
+    font-family: inherit;
+  }
+}
+
+/* MapLibre overrides */
+.maplibregl-map,
+.maplibregl-ctrl,
+.maplibregl-ctrl-attrib {
+  font-family: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib {
+  background: rgb(255 255 255 / 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 9999px;
+  margin: 0 8px 6px 0;
+  font-size: 10px;
+  color: #525252;
+}
+.maplibregl-ctrl-attrib a {
+  color: #404040;
+}
+.maplibregl-canvas {
+  outline: none;
+}
+
+/* thin overlay scrollbars */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(0 0 0 / 0.18) transparent;
+}
+
+/* ------------------------------------------------------------------ */
+/* HUD (src/ui)                                                        */
+/* ------------------------------------------------------------------ */
+
+/* one-off highlight for a fresh critical signal row */
+@keyframes signal-arrive {
+  0% {
+    background-color: var(--lv-critical-bg);
+    box-shadow: 0 0 0 0 rgb(220 38 38 / 0.45), var(--glass-highlight);
+  }
+  60% {
+    background-color: var(--lv-critical-bg);
+    box-shadow: 0 0 0 6px rgb(220 38 38 / 0), var(--glass-highlight);
+  }
+  100% {
+    background-color: var(--glass-element);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), var(--glass-highlight);
+  }
+}
+.signal-arrive {
+  animation: signal-arrive 1.8s ease-out 1;
+}
+
+/* signal list enter, leave and reorder */
+.signal-list-move,
+.signal-list-enter-active,
+.signal-list-leave-active {
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+.signal-list-enter-from {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.signal-list-leave-to {
+  opacity: 0;
+  transform: translateX(-12px);
+}
+.signal-list-leave-active {
+  position: absolute;
+  inset-inline: 0;
+}
+
+/*
+ * Map pins (map/markers.ts). A full pin is 34 px and a pin whose layer is off 18 px, for every kind.
+ * Vehicles: white tile in a frame of the status colour; people: the same as a disc; both with a
+ * dark glyph. Instruments: a disc of the status colour in a white ring with a white glyph.
+ * --pin-c and --badge-c are set per marker to var(--lv-<level>).
+ */
+.psm-marker {
+  --pin-c: var(--lv-normal);
+  width: 34px;
+  height: 34px;
+  z-index: 1;
+}
+.psm-marker[data-small] {
+  width: 18px;
+  height: 18px;
+  z-index: 0;
+}
+/* pins in a signal above the rest, the selected one above those, the hovered one on top */
+.psm-marker[data-signal] {
+  z-index: 2;
+}
+.psm-marker[data-selected] {
+  z-index: 3;
+}
+.psm-marker:hover {
+  z-index: 4;
+}
+
+.psm-pin {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 3.25px solid var(--pin-c);
+  border-radius: 8.5px;
+  background: #fff;
+  color: #171717;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  cursor: pointer;
+  outline: none;
+  transition: transform 120ms ease-out;
+}
+.psm-pin svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2.25;
+}
+.psm-marker[data-cat='person'] .psm-pin {
+  border-radius: 50%;
+}
+.psm-marker[data-cat='sensor'] .psm-pin {
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--pin-c);
+  color: #fff;
+}
+/* dark glyph on warning yellow for contrast */
+.psm-marker[data-cat='sensor'][data-level='warning'] .psm-pin {
+  color: #171717;
+}
+.psm-marker[data-small] .psm-pin {
+  border-width: 2px;
+  border-radius: 5px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+}
+.psm-marker[data-small][data-cat='person'] .psm-pin,
+.psm-marker[data-small][data-cat='sensor'] .psm-pin {
+  border-radius: 50%;
+}
+.psm-marker[data-small] .psm-pin svg {
+  width: 11px;
+  height: 11px;
+  stroke-width: 2.75;
+}
+.psm-marker:hover .psm-pin {
+  transform: scale(1.06);
+}
+
+/* selection ring behind the pin */
+.psm-marker::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50px;
+  height: 50px;
+  border: 2px solid #171717;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.4);
+  opacity: 0;
+  pointer-events: none;
+  translate: -50% -50%;
+}
+.psm-marker[data-small]::before {
+  width: 28px;
+  height: 28px;
+}
+.psm-marker[data-selected]::before {
+  opacity: 1;
+}
+
+/* corner badge while a signal is not acknowledged; its centre sits on the tile corner or the disc edge at 45 degrees */
+.psm-badge {
+  position: absolute;
+  top: 24.5px;
+  left: 24.5px;
+  display: none;
+  width: 15px;
+  height: 15px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  background: var(--badge-c, var(--lv-critical));
+  color: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  cursor: pointer;
+}
+.psm-badge svg {
+  width: 9px;
+  height: 9px;
+  stroke-width: 2.6;
+}
+.psm-marker[data-cat='person'] .psm-badge,
+.psm-marker[data-cat='sensor'] .psm-badge {
+  top: 22.5px;
+  left: 22.5px;
+}
+.psm-marker[data-alert]:not([data-small]) .psm-badge {
+  display: flex;
+}
+.psm-marker[data-alert='warning'] .psm-badge {
+  color: #171717;
+}
+
+/* hover tooltip, fixed above the pin (below it near the top edge) */
+.psm-tip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-xl);
+  color: #171717;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+  translate: calc(-50% + var(--tip-shift, 0px)) 0;
+}
+.psm-marker[data-tip-below] .psm-tip {
+  top: calc(100% + 6px);
+  bottom: auto;
+}
+.psm-marker:hover .psm-tip {
+  display: flex;
+}
+.psm-tip i {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+.psm-tip b {
+  font-weight: 500;
+}
+.psm-tip span {
+  color: #737373;
+}
+
+/* vue-sonner: single font, custom toast bodies */
+[data-sonner-toaster] {
+  font-family: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+[data-sonner-toast]:not([data-styled='true']) {
+  cursor: default;
+}
+/* toasts centred in the free map area right of the left panel, under the KPI island (offsets as in Hud.vue) */
+body [data-sonner-toaster][data-x-position='center'] {
+  left: calc(50% + 200px);
+}
+@media (min-width: 1600px) {
+  body [data-sonner-toaster][data-x-position='center'] {
+    left: calc(50% + 218px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-arrive {
+    animation: none;
+  }
+  .signal-list-move,
+  .signal-list-enter-active,
+  .signal-list-leave-active,
+  .psm-pin {
+    transition: none;
+  }
+}
