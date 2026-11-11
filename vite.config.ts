@@ -4,8 +4,7 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/pit-safety-demo/' : '/',
+export default defineConfig({
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
@@ -19,4 +18,4 @@ export default defineConfig(({ command }) => ({
     include: ['tests/**/*.spec.ts'],
     environment: 'node',
   },
-}))
+})

@@ -2,7 +2,7 @@
 
 A frontend-only demo of real-time safety monitoring at an open-pit mine. Real terrain in central Europe, fictional operations, simulated data. No backend and no login.
 
-Live demo: https://time2map.github.io/pit-safety-demo/
+Live demo: https://coal.time2map.com/
 
 What it shows:
 
