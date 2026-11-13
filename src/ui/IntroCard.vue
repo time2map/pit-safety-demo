@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { BellRing, ListChecks, MousePointerClick } from 'lucide-vue-next'
+import { BellRing, ListChecks, MousePointerClick, Search } from 'lucide-vue-next'
 import { useApp } from '@/engine/keys'
 import { UI } from '@/config/uiCopy'
 import { Button } from '@/components/ui/button'
@@ -17,7 +17,8 @@ function wasDismissed(): boolean {
 }
 
 const open = ref(options.mode === 'auto' && !wasDismissed())
-const ICONS = [BellRing, MousePointerClick, ListChecks]
+/* one per line of UI.intro.lines */
+const ICONS = [BellRing, MousePointerClick, ListChecks, Search]
 
 function dismiss() {
   open.value = false

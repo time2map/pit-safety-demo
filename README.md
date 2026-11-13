@@ -11,6 +11,7 @@ What it shows:
 - A blast exclusion zone that is armed, fires and clears, with people and equipment rings
 - Signals generated from the simulation: zone entries, limit exceedances, a haul truck fire, a seismic event, instruments not reporting
 - A product bar on the left with the count of active critical and warning signals, and under it one panel: the signal list, and an event card for each signal with what happened, its response steps right under the header (ticking any step of a new signal also acknowledges it), the subject's live data, who is involved, and the acknowledge and resolve actions; clicking an object on the map centres the view on it (no animation) and opens its card in the same panel, with its signals worked right there and its live data below
+- Object search in the product bar: find any vehicle, person or instrument by id (DZ-02, dz2), name, kind or everyday name (bulldozer, borehole, worker), operator, role or place; picking a result opens its card and centres the map on it
 - Follow mode: selecting a vehicle or person keeps it in the middle of the view as it moves; dragging the map lets go, and Follow or F picks it up again
 - Map controls in one column on the right edge (layers, zoom, north, fit site); the legend and the map credits sit folded to buttons in the bottom right corner
 - Pins sized for a 1920 x 1080 screen: vehicles and people are white with no ring while all is well and get a status ring at warning or critical; instruments are discs in their status colour
@@ -46,6 +47,7 @@ The demo starts in autoplay: a six minute loop runs three stories (slope movemen
 | R | Reset the scene |
 | H | Show or hide the presenter dock |
 | F | Stop following the selected vehicle or person, or follow it again (selecting one follows it; dragging the map lets go) |
+| / or Ctrl+K | Search for a vehicle, person or instrument |
 | Esc | Back one step in the left panel (card to card, last card to the signal list) |
 
 URL options:

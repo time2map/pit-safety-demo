@@ -55,6 +55,16 @@ describe('outlet navigation', () => {
     expect(views()).toEqual(['signal:sig-1', 'object:HT-101'])
   })
 
+  it('a search result opens its object like a map click: in place of an object card, above a signal card, and the map centres on it', () => {
+    const { outlet, calls, views } = setup()
+    outlet.openSignal('sig-1')
+    outlet.find('DZ-02')
+    expect(views()).toEqual(['signal:sig-1', 'object:DZ-02'])
+    outlet.find('PE-02')
+    expect(views()).toEqual(['signal:sig-1', 'object:PE-02'])
+    expect(calls.slice(-2)).toEqual(['focus DZ-02', 'focus PE-02'])
+  })
+
   it('a click on empty map closes an object card but leaves a signal card open', () => {
     const { outlet, views } = setup()
     outlet.openSignal('sig-1')

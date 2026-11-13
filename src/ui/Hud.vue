@@ -30,9 +30,9 @@ useHotkeys(ctx)
   <!-- ignore-non-keyboard-focus: focus moved by script after a mouse click (see SignalsOutlet) must not pop a tooltip -->
   <TooltipProvider :delay-duration="300" :skip-delay-duration="200" ignore-non-keyboard-focus>
     <div class="pointer-events-none absolute inset-0 z-10 overflow-hidden text-foreground">
-      <!-- left: the product bar with the active signal counts, and under it one panel with the signal list or the signal or object card -->
+      <!-- left: the product bar with the active signal counts and the object search (its results float over the panel), and one panel with the signal list or the signal or object card -->
       <div class="absolute bottom-4 left-4 top-4 flex w-[384px] flex-col gap-2 min-[1600px]:w-[420px]">
-        <BrandHeader class="pointer-events-auto" />
+        <BrandHeader class="pointer-events-auto z-20" />
         <SignalsOutlet class="pointer-events-auto min-h-0" />
       </div>
 

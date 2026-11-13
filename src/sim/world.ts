@@ -185,6 +185,7 @@ class SimWorldImpl implements SimWorld {
       case 'scripted': {
         const s = new Scripted(d.id, d.id, d.kind, Path.of(ROUTES[m.route]), m.speed, r)
         s.operator = d.operator
+        s.area = ROUTE_LABEL[m.route]
         return s
       }
     }

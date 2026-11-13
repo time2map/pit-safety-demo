@@ -1,6 +1,7 @@
 /** Builds the UI-facing object summaries and the object card detail for the selected object. */
 import { KIND_LABEL } from '@/config/copy'
 import type { Level, Metric, ObjectDetail, ObjectRef, ObjectSummary } from '@/engine/contract'
+import { ROUTE_LABEL } from '@/data/fleet'
 import { PRISM_IDS } from '@/data/sensors'
 import { Drill, TEMP_CRIT, TEMP_WARN, Truck, type Mobile } from './actors'
 import type { Instrument } from './instruments'
@@ -35,7 +36,10 @@ export const instrumentRef = (s: Instrument): ObjectRef => ({ id: s.id, label: s
 
 export function actorSummary(a: Mobile): ObjectSummary {
   const what = a.person ? a.person.role : KIND_LABEL[a.kind]
-  return { ...a.ref, category: a.category, level: a.level, lngLat: a.lngLat, subtitle: `${what}, ${lowerFirst(a.state())}` }
+  // names keep their capitals; the other keywords read mid-line in the search results, so they start lower case
+  const places = [a.person?.role, a.person?.area, a.area, a instanceof Truck ? ROUTE_LABEL[a.route] : undefined]
+  const keywords = [a.operator, ...places.map((k) => k && lowerFirst(k))].filter((k): k is string => !!k)
+  return { ...a.ref, category: a.category, level: a.level, lngLat: a.lngLat, subtitle: `${what}, ${lowerFirst(a.state())}`, keywords }
 }
 
 export function instrumentSummary(s: Instrument): ObjectSummary {
@@ -45,6 +49,7 @@ export function instrumentSummary(s: Instrument): ObjectSummary {
     level: s.level,
     lngLat: s.lngLat,
     subtitle: `${KIND_LABEL[s.kind]}, ${lowerFirst(s.def.place)}`,
+    keywords: [lowerFirst(s.def.place)],
   }
 }
 

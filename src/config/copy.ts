@@ -24,6 +24,23 @@ export const KIND_LABEL: Record<ObjectKind, string> = {
   seismic: 'Seismograph',
 }
 
+/** Everyday names the object search also accepts for each kind, next to KIND_LABEL (ui/search.ts). */
+export const KIND_TERMS: Record<ObjectKind, string[]> = {
+  haulTruck: ['dump truck', 'truck', 'vehicle', 'equipment'],
+  excavator: ['shovel', 'digger', 'vehicle', 'equipment'],
+  dozer: ['bulldozer', 'crawler', 'vehicle', 'equipment'],
+  drillRig: ['blasthole drill', 'vehicle', 'equipment'],
+  loader: ['front loader', 'vehicle', 'equipment'],
+  lightVehicle: ['pickup', 'pickup truck', 'utility vehicle', 'car', 'vehicle'],
+  person: ['worker', 'employee', 'staff', 'people', 'crew'],
+  inclinometer: ['borehole', 'instrument', 'sensor', 'ground movement'],
+  piezometer: ['borehole', 'well', 'pore pressure', 'water', 'instrument', 'sensor'],
+  prism: ['target', 'instrument', 'sensor', 'ground movement'],
+  totalStation: ['survey', 'instrument', 'sensor'],
+  radar: ['instrument', 'sensor', 'ground movement'],
+  seismic: ['seismic', 'vibration', 'instrument', 'sensor'],
+}
+
 /** Short signal titles for the list, the cards and the toasts: what happened, in a few words. */
 export const SIGNAL_TITLE: Record<SignalType, (ctx: { people: number; vehicles: number }) => string> = {
   blastEntry: ({ people, vehicles }) => `${who(people, vehicles)} in blast zone`,

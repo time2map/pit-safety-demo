@@ -18,6 +18,8 @@ export interface Outlet {
   openObject(id: string): void
   /** a click on the map: an object opens its card in place of an object card on top and the map centres on it, empty map closes that card */
   mapPick(id: string | null): void
+  /** a search result: opens the object's card like a map click (in place of an object card on top) and centres the map on it */
+  find(id: string): void
   /** one step back; the list is the last step */
   back(): void
   /** straight back to the signal list */
@@ -85,6 +87,9 @@ export function createOutlet(deps: OutletDeps): Outlet & { clear(): void } {
     mapPick(id) {
       if (id) open({ kind: 'object', id }, true)
       else if (top()?.kind === 'object') back()
+    },
+    find(id) {
+      open({ kind: 'object', id }, true)
     },
     back,
     home() {

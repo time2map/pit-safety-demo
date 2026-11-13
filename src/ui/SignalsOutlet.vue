@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import IconButton from './IconButton.vue'
 import ObjectCard from './ObjectCard.vue'
+import { panelNav } from './searchFocus'
 import SignalCard from './SignalCard.vue'
 import SignalList from './SignalList.vue'
 
@@ -60,6 +61,7 @@ watch([top, signal, objectDetail], ([t, s, o]) => {
  */
 const root = ref<HTMLElement | null>(null)
 const nav = ref<HTMLElement | null>(null)
+watch(nav, (el) => (panelNav.value = el))
 let openedFrom: string | null = null
 let openedNew = false
 const statusOf = (id: string) => snapshot.value.signalsActive.find((x) => x.id === id)?.status

@@ -55,6 +55,8 @@ export interface ObjectSummary extends ObjectRef {
   lngLat: LngLat
   /** one short line, e.g. "Haul truck, hauling" or "Inclinometer well" */
   subtitle: string
+  /** more words to find the object by in the search: operator, role, work area, place, haul road */
+  keywords: string[]
 }
 
 export interface Metric {

@@ -65,17 +65,17 @@ function series(): { t: number[]; v: number[] } {
 }
 
 const OBJECTS: ObjectSummary[] = [
-  { id: 'HT-104', label: 'HT-104', kind: 'haulTruck', category: 'vehicle', level: 'normal', lngLat: [19.3207, 51.2341], subtitle: 'Haul truck, hauling' },
-  { id: 'HT-107', label: 'HT-107', kind: 'haulTruck', category: 'vehicle', level: 'warning', lngLat: [19.3143, 51.2368], subtitle: 'Haul truck, returning' },
-  { id: 'EX-01', label: 'EX-01', kind: 'excavator', category: 'vehicle', level: 'normal', lngLat: POINTS.EX01, subtitle: 'Excavator, loading' },
-  { id: 'DZ-01', label: 'DZ-01', kind: 'dozer', category: 'vehicle', level: 'critical', lngLat: [19.3006, 51.2348], subtitle: 'Dozer, pushing' },
-  { id: 'DR-01', label: 'DR-01', kind: 'drillRig', category: 'vehicle', level: 'normal', lngLat: POINTS.DR01, subtitle: 'Drill rig, drilling' },
-  { id: 'P-07', label: 'M. Novak', kind: 'person', category: 'person', level: 'critical', lngLat: [19.3005, 51.2350], subtitle: 'Surveyor' },
-  { id: 'P-02', label: 'A. Keller', kind: 'person', category: 'person', level: 'normal', lngLat: [19.3166, 51.2382], subtitle: 'Shift supervisor' },
-  { id: 'IW-02', label: 'IW-02', kind: 'inclinometer', category: 'sensor', level: 'critical', lngLat: POINTS.IW02, subtitle: 'West wall, bench 3' },
-  { id: 'PZ-03', label: 'PZ-03', kind: 'piezometer', category: 'sensor', level: 'warning', lngLat: POINTS.PZ03, subtitle: 'West wall, bench 5' },
-  { id: 'P-04', label: 'P-04', kind: 'prism', category: 'sensor', level: 'offline', lngLat: POINTS.P04, subtitle: 'West wall crest' },
-  { id: 'SR-1', label: 'SR-1', kind: 'radar', category: 'sensor', level: 'normal', lngLat: POINTS.SR1, subtitle: 'Slope radar, west wall' },
+  { id: 'HT-104', label: 'HT-104', kind: 'haulTruck', category: 'vehicle', level: 'normal', lngLat: [19.3207, 51.2341], subtitle: 'Haul truck, hauling', keywords: [] },
+  { id: 'HT-107', label: 'HT-107', kind: 'haulTruck', category: 'vehicle', level: 'warning', lngLat: [19.3143, 51.2368], subtitle: 'Haul truck, returning', keywords: [] },
+  { id: 'EX-01', label: 'EX-01', kind: 'excavator', category: 'vehicle', level: 'normal', lngLat: POINTS.EX01, subtitle: 'Excavator, loading', keywords: [] },
+  { id: 'DZ-01', label: 'DZ-01', kind: 'dozer', category: 'vehicle', level: 'critical', lngLat: [19.3006, 51.2348], subtitle: 'Dozer, pushing', keywords: [] },
+  { id: 'DR-01', label: 'DR-01', kind: 'drillRig', category: 'vehicle', level: 'normal', lngLat: POINTS.DR01, subtitle: 'Drill rig, drilling', keywords: [] },
+  { id: 'P-07', label: 'M. Novak', kind: 'person', category: 'person', level: 'critical', lngLat: [19.3005, 51.2350], subtitle: 'Surveyor', keywords: [] },
+  { id: 'P-02', label: 'A. Keller', kind: 'person', category: 'person', level: 'normal', lngLat: [19.3166, 51.2382], subtitle: 'Shift supervisor', keywords: [] },
+  { id: 'IW-02', label: 'IW-02', kind: 'inclinometer', category: 'sensor', level: 'critical', lngLat: POINTS.IW02, subtitle: 'West wall, bench 3', keywords: [] },
+  { id: 'PZ-03', label: 'PZ-03', kind: 'piezometer', category: 'sensor', level: 'warning', lngLat: POINTS.PZ03, subtitle: 'West wall, bench 5', keywords: [] },
+  { id: 'P-04', label: 'P-04', kind: 'prism', category: 'sensor', level: 'offline', lngLat: POINTS.P04, subtitle: 'West wall crest', keywords: [] },
+  { id: 'SR-1', label: 'SR-1', kind: 'radar', category: 'sensor', level: 'normal', lngLat: POINTS.SR1, subtitle: 'Slope radar, west wall', keywords: [] },
 ]
 
 export function mockSnapshot(): Snapshot {

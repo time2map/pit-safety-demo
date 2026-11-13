@@ -55,6 +55,16 @@ export const UI = {
     vehicles: (n: number) => plural(n, 'vehicle', 'vehicles'),
   },
 
+  search: {
+    label: 'Search objects',
+    placeholder: 'Find a vehicle, person or instrument',
+    clear: 'Clear search',
+    results: 'Objects found',
+    count: (n: number) => (n ? plural(n, 'object found', 'objects found') : 'No objects found'),
+    empty: 'Nothing matches. Try an id like DZ-02, a name or a kind like borehole.',
+    more: (n: number) => `${plural(n, 'more match', 'more matches')}, type more to narrow it down`,
+  },
+
   outlet: {
     nav: 'Card navigation',
     back: 'Back',
@@ -154,6 +164,7 @@ export const UI = {
       'Signals appear on the left as situations develop',
       'Click any truck, person or instrument for its live data',
       'Open a signal to see its response steps and tick them off',
+      'Find any vehicle, person or instrument with the search at the top',
     ],
     ok: 'Got it',
   },

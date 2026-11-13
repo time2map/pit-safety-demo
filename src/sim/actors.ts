@@ -46,6 +46,8 @@ export abstract class Mobile {
   /** status combined with the signals the actor is involved in */
   level: Level = 'normal'
   operator = ''
+  /** where a vehicle with a fixed job works, e.g. "West wall" (search keyword); empty when it moves about */
+  area = ''
   person: PersonInfo | null = null
 
   constructor(id: string, label: string) {
